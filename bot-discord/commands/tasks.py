@@ -4,6 +4,7 @@ from managers.task_manager import TaskManager
 
 task_manager = TaskManager()
 
+# Function that register the commands
 def register_task(tree: app_commands.CommandTree):
 
     # Add a task
@@ -50,3 +51,4 @@ def register_task(tree: app_commands.CommandTree):
 
         formatted_tasks = '\n'.join(f'- {task}' for task in tasks)
         await interaction.followup.send(f'Your ongoing tasks:\n{formatted_tasks}')
+        

@@ -12,4 +12,4 @@ async def get_inspirational_quote() -> str:
             quote = quote_data.get("q", "No quote found")
             author = quote_data.get("a") or "Unknown"
 
-            return f"{quote} - {author}"
+            return f'{quote} - {author}'
