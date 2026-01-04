@@ -3,9 +3,9 @@ from discord import app_commands
 from datetime import datetime, timezone
 
 from managers.session_manager import SessionManager
-from utils.time_formatter import time_formatter as format_duration
+from utils.formatter import time_formatter
 
-sessionManger = SessionManager()
+sessionManager = SessionManager()
 
 # Function that register the commands
 def register_study_sessions(tree: app_commands.CommandTree):
@@ -17,7 +17,7 @@ def register_study_sessions(tree: app_commands.CommandTree):
         await interaction.response.defer()
 
         user_id = interaction.user.id
-        sucess = sessionManger.start_session(user_id, name)
+        sucess = sessionManager.start_session(user_id, name)
 
         if not sucess:
             await interaction.followup.send('You are already in a study session! Quit it before you join another!')
@@ -31,17 +31,16 @@ def register_study_sessions(tree: app_commands.CommandTree):
         await interaction.response.defer()
 
         user_id = interaction.user.id
-        session = sessionManger.end_session(user_id)
+        session = sessionManager.end_session(user_id)
 
         if not session:
             await interaction.followup.send('You are not in a study session yet! Join one!', ephemeral=True)
             return
 
-        duration = format_duration(session.duration_seconds)
+        duration = time_formatter(session.duration_seconds)
         
         await interaction.followup.send(f'Session "{session.session_name}" finished!\n'
                                         f'Time studied: {duration}')
-
 
     # Show the status of your current study session
     @tree.command(name='sessionstatus', description='Show your current session status')
@@ -49,51 +48,57 @@ def register_study_sessions(tree: app_commands.CommandTree):
         await interaction.response.defer()
 
         user_id = interaction.user.id
-        session = sessionManger.get_active_session(user_id)
+        session = sessionManager.get_active_session(user_id)
 
         if not session:
             await interaction.followup.send('You are not in a study session yet! Join one!', ephemeral=True)
             return
 
-        duration = format_duration(session.duration_seconds)
+        duration = time_formatter(session.duration_seconds)
         
         await interaction.followup.send(f'Current session: "{session.session_name}"\n'
                                         f'Time in session: {duration}')
-    
 
-#     # Shows the total time per subject
-#     @tree.command(name='studysummary', description='Shows the total hours studied in the subject')
-#     @app_commands.describe(subject='Total time on subject')
-#     async def study_summary(interaction: discord.Interaction, subject: str):
-#         await interaction.response.defer()
+     # Shows the total time per session
+    @tree.command(name='studysummary', description='Shows the total hours studied in a session')
+    @app_commands.describe(name='Total time on session')
+    async def study_summary(interaction: discord.Interaction, name: str):
+        await interaction.response.defer()
 
-#         user_id = interaction.user.id
+        user_id = interaction.user.id
+        session = sessionManager.get_ended_sessions(user_id)
 
-#         if user_id not in ended_sessions:
-#             await interaction.followup.send('You have no ended sessions!')
-#             return
+        if not session:
+            await interaction.followup.send('You have no ended sessions!')
+            return
 
-#         if subject not in ended_sessions[user_id]:
-#             await interaction.followup.send(f'There are no ended sessions named "{subject}"!')
-#             return
+        total_seconds = sessionManager.get_total_time_by_session(user_id, name)
 
-#         formatted_time = format_study_duration(ended_sessions[user_id][subject])
-#         await interaction.followup.send(f'Time spent on "{subject}":  {formatted_time}') 
+        if total_seconds == 0:
+            await interaction.followup.send(f'There are no ended sessions named "{name}"!')
+            return
 
-#     # Shows everything you studied
-#     @tree.command(name='studysummary_all', description='Shows the total hours of each subject you studied')
-#     async def study_summary(interaction: discord.Interaction):
-#         await interaction.response.defer()
+        formatted_time = time_formatter(total_seconds)
+        await interaction.followup.send(f'Time spent on "{name}":  {formatted_time}') 
 
-#         user_id = interaction.user.id
+    # Shows everything you studied
+    @tree.command(name='studysummary_all', description='Shows the total hours of each session you studied')
+    async def study_summary(interaction: discord.Interaction):
+        await interaction.response.defer()
 
-#         if user_id not in ended_sessions:
-#             await interaction.followup.send('You have no ended sessions!')
-#             return
+        user_id = interaction.user.id
+        session = sessionManager.get_ended_sessions(user_id)
 
-#         all_summary = ''
-#         for subject in ended_sessions[user_id]:
-#             formatted_time = format_study_duration(ended_sessions[user_id][subject])
-#             all_summary += f'"{subject}": {formatted_time}\n'
+        if not session:
+            await interaction.followup.send('You have no ended sessions!')
+            return
 
-#         await interaction.followup.send(f'All subject studied:\n{all_summary}')   
+        sessions_name = {sessions.session_name for sessions in session}
+
+        lines = []
+
+        for session_name in sessions_name:
+            total_seconds = sessionManager.get_total_time_by_session(user_id, session_name)
+            lines.append(f'- "{session_name}": {time_formatter(total_seconds)}')
+
+        await interaction.followup.send(f'All subjects studied:\n' + '\n'.join(lines)) 

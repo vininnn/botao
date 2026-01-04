@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from commands.sessions import register_study_sessions
-from commands.task import register_task
+from commands.tasks import register_task
 from commands.quotes import register_quotes, on_message
 import os
 

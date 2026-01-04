@@ -20,13 +20,16 @@ class SessionManager:
     # End an active session of a user
     # Return None if user not in a session
     def end_session(self, user_id: int) -> Session | None:
-        if user_id not in self._active_session:
+        session = self._active_session.pop(user_id, None)
+        
+        if session is None:
             return None
         
+        session.set_end_time()
         if user_id not in self._ended_sessions:
             self._ended_sessions[user_id] = []
-        self._ended_sessions[user_id].append(Session)
-        return Session
+        self._ended_sessions[user_id].append(session)
+        return session
     
     # Return an active session for the user, if any
     def get_active_session(self, user_id: int) -> Session | None:
@@ -35,4 +38,14 @@ class SessionManager:
     # Returns the user's finished sessions history
     def get_ended_sessions(self, user_id: int) -> list[Session]:
         return self._ended_sessions.get(user_id, [])
+    
+    # Returns the user's time spent in a session
+    def get_total_time_by_session(self, user_id: int, name: str) -> int:
+        session = self._ended_sessions.get(user_id, [])
+        
+        return sum(
+            sessions.duration_seconds
+            for sessions in session
+            if sessions.session_name == name
+        )
     
