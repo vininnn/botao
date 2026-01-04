@@ -3,16 +3,25 @@ from models.session import Session
 class SessionManager:
     def __init__(self):
         # user_id -> active session
-        self._active_session : dict[int, Session] = {}
+        self._active_session: dict[int, Session] = {}
         # user_id -> list of finished sessions
-        self._ended_sessions : dict[int, list[Session]] = {}
+        self._ended_sessions: dict[int, list[Session]] = {}
+
+        # injected later
+        self._shared_session_manager = None
+
+    def set_shared_session_manager(self, manager) -> None:
+        self._shared_session_manager = manager
 
     # Create a new session for the user
     # Return False if user is already in a session
     def start_session(self, user_id: int, session_name: str) -> bool:
         if user_id in self._active_session:
             return False
-        
+
+        if self._shared_session_manager and self._shared_session_manager.is_user_in_shared(user_id):
+            return False
+
         session = Session(user_id, session_name)
         self._active_session[user_id] = session
         return True
@@ -49,3 +58,16 @@ class SessionManager:
             if sessions.session_name == name
         )
     
+    # Return True if user is in a active session
+    # Used in shared session
+    def has_active_session(self, user_id: int) -> bool:
+        return user_id in self._active_session
+    
+    # Registers a finished session (used by shared sessions)
+    def add_finished_session(self, session: Session) -> None:
+        user_id = session.user_id
+
+        if user_id not in self._ended_sessions:
+            self._ended_sessions[user_id] = []
+
+        self._ended_sessions[user_id].append(session)

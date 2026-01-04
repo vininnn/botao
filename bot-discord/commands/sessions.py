@@ -5,10 +5,8 @@ from datetime import datetime, timezone
 from managers.session_manager import SessionManager
 from utils.formatter import time_formatter
 
-sessionManager = SessionManager()
-
 # Function that register the commands
-def register_study_sessions(tree: app_commands.CommandTree):
+def register_study_sessions(tree: app_commands.CommandTree, sessionManager: SessionManager):
 
     # Start a study session
     @tree.command(name='startsession', description='Start a study session')

@@ -11,7 +11,7 @@ class SharedSessionManager:
         key = (guild_id, name)
 
         if key in self._shared_sessions:
-            raise ValueError('Shared session already exists')
+            raise ValueError('This shared session already exists!')
         
         self._shared_sessions[key] = SharedSession(guild_id, name)
 
@@ -19,10 +19,13 @@ class SharedSessionManager:
         key = (guild_id, name)
 
         if user_id in self._user_in_shared:
-            raise ValueError("User already in a session")
+            raise ValueError('You are already in a shared session!')
+
+        if self._session_manager.has_active_session(user_id):
+            raise ValueError('You are already in a individual session!')
 
         if key not in self._shared_sessions:
-            raise ValueError("Shared session does not exist")
+            raise ValueError('This shared session does not exist!')
 
         shared = self._shared_sessions[key]
         shared.add_participant(user_id)
@@ -31,7 +34,7 @@ class SharedSessionManager:
 
     def leave(self, user_id: int) -> Session:
         if user_id not in self._user_in_shared:
-            raise ValueError("User is not in a shared session")
+            raise ValueError('You are not in a shared session!')
 
         key = self._user_in_shared.pop(user_id)
         shared_session = self._shared_sessions[key]
@@ -52,3 +55,15 @@ class SharedSessionManager:
 
         return session
 
+    # Return all shared session from the server
+    def list_sessions(self, guild_id: int) -> list[SharedSession]:
+        session_found = []
+        for (gid, _), sesison in self._shared_sessions.items():
+            if gid == guild_id:
+                session_found.append(sesison)
+
+        return session_found
+    
+    # Verify if user already in a shared session
+    def is_user_in_shared(self, user_id: int) -> bool:
+        return user_id in self._user_in_shared

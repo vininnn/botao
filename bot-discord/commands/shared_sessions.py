@@ -38,8 +38,7 @@ def register_shared_sessions(tree: app_commands.CommandTree, sharedSessionManage
 
     # Leave your current shared study session
     @tree.command(name='leaveshared', description='Leave your shared study session')
-    @app_commands.describe(name='Session name')
-    async def leave_shared(interaction: discord.Interaction, name: str):
+    async def leave_shared(interaction: discord.Interaction):
         await interaction.response.defer()
 
         user_id = interaction.user.id
@@ -48,14 +47,14 @@ def register_shared_sessions(tree: app_commands.CommandTree, sharedSessionManage
             session = sharedSessionManager.leave(user_id)
             formatted_time = time_formatter(session.duration_seconds)
 
-            await interaction.followup.send(f'You left the shared session "{session.session_name}".\n'
+            await interaction.followup.send(f'You leave the shared session "{session.session_name}".\n'
                 f'Time studied: {formatted_time}')
         except ValueError as e:
             await interaction.followup.send(str(e))
 
     # List all current shared study sessions in the server
     @tree.command(name='listshared', description='List all shared study session in this server')
-    async def list_shared(interaction: discord.Interaction, name: str):
+    async def list_shared(interaction: discord.Interaction):
         await interaction.response.defer()
 
         guild_id = interaction.guild.id
@@ -65,7 +64,7 @@ def register_shared_sessions(tree: app_commands.CommandTree, sharedSessionManage
             await interaction.followup.send(f'There are no shared sessions in this server!')
             return
         
-        msg =  'Shared Sessions:\n'
+        msg = 'Shared Sessions:\n'
 
         for session in sessions:
             partipants_count = len(session.participants)
