@@ -30,7 +30,7 @@ bot.add_listener(on_message)
 @bot.event
 async def on_ready():
     register_study_sessions(bot.tree, sessionManager)
-    register_shared_sessions(bot.tree, sharedSessionManager)
+    register_shared_sessions(bot.tree, sharedSessionManager, sessionManager)
     register_task(bot.tree)
     register_quotes(bot.tree)
     synced = await bot.tree.sync()

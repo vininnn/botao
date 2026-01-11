@@ -2,10 +2,11 @@ import discord
 from discord import app_commands
 
 from managers.shared_session_manager import SharedSessionManager
+from managers.session_manager import SessionManager
 from utils.formatter import time_formatter
 
 # Function that register the commands
-def register_shared_sessions(tree: app_commands.CommandTree, sharedSessionManager: SharedSessionManager):
+def register_shared_sessions(tree: app_commands.CommandTree, sharedSessionManager: SharedSessionManager, sessionManager: SessionManager):
 
     # Start a shared study session
     @tree.command(name='startshared', description='Start a shared study session')
@@ -14,13 +15,19 @@ def register_shared_sessions(tree: app_commands.CommandTree, sharedSessionManage
         await interaction.response.defer()
 
         guild_id = interaction.guild.id
+        user_id = interaction.user.id
+
+        if sessionManager.has_active_session(user_id) or sharedSessionManager.is_user_in_shared(user_id):
+            await interaction.followup.send("You already are in a session! Quit it before create it!")
+            return
 
         try:
             sharedSessionManager.start(guild_id, name)
+            sharedSessionManager.join(guild_id, name, user_id)
             await interaction.followup.send(f'Shared session "{name}" created sucessfully')
         except ValueError as e:
             await interaction.followup.send(str(e))
-    
+            
     # Join an existing shared study session
     @tree.command(name='joinshared', description='Join a shared study session')
     @app_commands.describe(name='Session name')
