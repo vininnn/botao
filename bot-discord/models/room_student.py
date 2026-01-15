@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-class ParticipantSession:
+class RoomStudent:
     def __init__(self, user_id: int):
         self.user_id = user_id
         self.total_seconds = 0

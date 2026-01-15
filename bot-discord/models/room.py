@@ -1,9 +1,9 @@
 from datetime import datetime, timezone, timedelta
 
-class Session:
-    def __init__(self, user_id: int, session_name: str):
+class Room:
+    def __init__(self, user_id: int, room_name: str):
         self.user_id = user_id
-        self.session_name = session_name
+        self.room_name = room_name
         self.start_time: datetime = datetime.now(timezone.utc)
         self.end_time: datetime | None = None
     
@@ -22,15 +22,15 @@ class Session:
         else:
             return int((datetime.now(timezone.utc) - self.start_time).total_seconds())  
 
-    # Creates an ended sessions from a duration in seconds
-    # Used by shared sessions
+    # Creates an ended rooms from a duration in seconds
+    # Used by shared rooms
     @classmethod
-    def from_duration(cls, user_id: int, name: str, duration_seconds: int) -> "Session":
+    def from_duration(cls, user_id: int, name: str, duration_seconds: int) -> "Room":
         end_time = datetime.now(timezone.utc)
         start_time = end_time - timedelta(seconds=duration_seconds)
 
-        session = cls(user_id, name)
-        session.start_time = start_time
-        session.end_time = end_time
+        room = cls(user_id, name)
+        room.start_time = start_time
+        room.end_time = end_time
 
-        return session
+        return room

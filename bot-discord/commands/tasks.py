@@ -5,7 +5,7 @@ from managers.task_manager import TaskManager
 task_manager = TaskManager()
 
 # Function that register the commands
-def register_task(tree: app_commands.CommandTree):
+def register_tasks(tree: app_commands.CommandTree):
 
     # Add a task
     @tree.command(name='task', description='Add a new task')
