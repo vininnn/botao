@@ -1,36 +1,17 @@
-from datetime import datetime, timezone, timedelta
+from models.base.room_base import BaseRoom
+from models.base.traits import OpenableRoom, CloseableRoom
 
-class Room:
-    def __init__(self, user_id: int, room_name: str):
+class Room(BaseRoom, OpenableRoom, CloseableRoom):
+    def __init__(self, user_id: int, name: str):
+        super().__init__(name)
         self.user_id = user_id
-        self.room_name = room_name
-        self.start_time: datetime = datetime.now(timezone.utc)
-        self.end_time: datetime | None = None
     
-    def set_end_time(self) -> None:
-        if self.end_time is None:
-            self.end_time = datetime.now(timezone.utc)
+    def open(self) -> None:
+        pass
 
-    @property
-    def is_active(self) -> bool:
-        return self.end_time is None
-    
-    @property
-    def duration_seconds(self) -> int:
-        if self.end_time:
-            return int((self.end_time - self.start_time).total_seconds())
-        else:
-            return int((datetime.now(timezone.utc) - self.start_time).total_seconds())  
+    def close(self) -> None:
+        self._mark_as_finished()
 
-    # Creates an ended rooms from a duration in seconds
-    # Used by shared rooms
     @classmethod
     def from_duration(cls, user_id: int, name: str, duration_seconds: int) -> "Room":
-        end_time = datetime.now(timezone.utc)
-        start_time = end_time - timedelta(seconds=duration_seconds)
-
-        room = cls(user_id, name)
-        room.start_time = start_time
-        room.end_time = end_time
-
-        return room
+        return super().create_history_entry(name, duration_seconds, user_id=user_id)

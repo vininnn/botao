@@ -54,7 +54,7 @@ def register_server_rooms(tree: app_commands.CommandTree, serverRoomManager: Ser
             room = serverRoomManager.leave(user_id)
             formatted_time = time_formatter(room.duration_seconds)
 
-            await interaction.followup.send(f'You leave the shared room "{room.room_name}".\n'
+            await interaction.followup.send(f'You leave the shared room "{room.name}".\n'
                 f'Time studied: {formatted_time}')
         except ValueError as e:
             await interaction.followup.send(str(e))
@@ -75,6 +75,6 @@ def register_server_rooms(tree: app_commands.CommandTree, serverRoomManager: Ser
 
         for room in rooms:
             partipants_count = len(room.students)
-            msg += f'- "{room.room_name}" "({partipants_count} participants)"'
+            msg += f'- "{room.name}" "({partipants_count} participants)"'
 
         await interaction.followup.send(msg)

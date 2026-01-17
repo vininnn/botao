@@ -1,6 +1,5 @@
 import discord
 from discord import app_commands
-from datetime import datetime, timezone
 
 from managers.room_manager import RoomManager
 from utils.formatter import time_formatter
@@ -15,7 +14,7 @@ def register_study_rooms(tree: app_commands.CommandTree, roomManager: RoomManage
         await interaction.response.defer()
 
         user_id = interaction.user.id
-        sucess = roomManager.start(user_id, name)
+        sucess = roomManager.open(user_id, name)
 
         if not sucess:
             await interaction.followup.send('You are already in a study room! Quit it before you join another!')
@@ -37,7 +36,7 @@ def register_study_rooms(tree: app_commands.CommandTree, roomManager: RoomManage
 
         duration = time_formatter(room.duration_seconds)
         
-        await interaction.followup.send(f'room "{room.room_name}" finished!\n'
+        await interaction.followup.send(f'room "{room.name}" finished!\n'
                                         f'Time studied: {duration}')
 
     # Show the status of your current study room
@@ -46,7 +45,7 @@ def register_study_rooms(tree: app_commands.CommandTree, roomManager: RoomManage
         await interaction.response.defer()
 
         user_id = interaction.user.id
-        room = roomManager.get_active_room(user_id)
+        room = roomManager.get_open_room(user_id)
 
         if not room:
             await interaction.followup.send('You are not in a study room yet! Join one!', ephemeral=True)
@@ -54,7 +53,7 @@ def register_study_rooms(tree: app_commands.CommandTree, roomManager: RoomManage
 
         duration = time_formatter(room.duration_seconds)
         
-        await interaction.followup.send(f'Current room: "{room.room_name}"\n'
+        await interaction.followup.send(f'Current room: "{room.name}"\n'
                                         f'Time in room: {duration}')
 
      # Shows the total time per room
@@ -91,7 +90,7 @@ def register_study_rooms(tree: app_commands.CommandTree, roomManager: RoomManage
             await interaction.followup.send('You have no ended rooms!')
             return
 
-        rooms_name = {rooms.room_name for rooms in room}
+        rooms_name = {rooms.name for rooms in room}
 
         lines = []
 
