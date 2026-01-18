@@ -54,13 +54,20 @@ class ServerRoomManager:
     # Return all shared room from the server
     def list_rooms(self, guild_id: int) -> list[ServerRoom]:
         room_list = []
-        for (gid, _), sesison in self._server_rooms.items():
+        for (gid, _), room in self._server_rooms.items():
             if gid == guild_id:
-                room_list.append(sesison)
+                room_list.append(room)
 
         return room_list
     
     # Verify if user already in a shared room
     def is_user_in_server_room(self, user_id: int) -> bool:
         return user_id in self._student_location
+
+    def get_user_room(self, user_id: int) -> ServerRoom | None:
+        """Retorna o objeto da sala onde o usuário está, se houver."""
+        location = self._student_location.get(user_id)
+        if location:
+            return self._server_rooms.get(location)
+        return None
     

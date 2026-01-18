@@ -4,7 +4,7 @@ from models.room_student import RoomStudent
 
 class ServerRoom(BaseRoom, OpenableRoom, JoinableRoom):
     def __init__(self, guild_id: int, name: str):
-        super.__init__(name)
+        super().__init__(name)
         self.guild_id = guild_id
         # user_id -> Obj RoomStudent
         self.students: dict[int, RoomStudent] = {}
