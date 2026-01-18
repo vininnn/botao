@@ -1,6 +1,6 @@
-from models.room import Room
+from models.private_room import Room
 
-class RoomManager:
+class PrivateRoomManager:
     def __init__(self):
         self._open_rooms: dict[int, Room] = {}
         self._closed_rooms: dict[int, list[Room]] = {}

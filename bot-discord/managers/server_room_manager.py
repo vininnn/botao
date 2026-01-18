@@ -1,4 +1,4 @@
-from models.room import Room
+from models.private_room import PrivateRoom
 from models.server_room import ServerRoom
 
 class ServerRoomManager:
@@ -33,7 +33,7 @@ class ServerRoomManager:
         room.join(user_id)
         self._student_location[user_id] = key
 
-    def leave(self, user_id: int) -> Room:
+    def leave(self, user_id: int) -> PrivateRoom:
         if user_id not in self._student_location:
             raise ValueError('You are not in a Server Room!')
 
@@ -42,7 +42,7 @@ class ServerRoomManager:
 
         total_seconds = room.leave(user_id)
 
-        history_entry = Room.from_duration(user_id, room.name, total_seconds)
+        history_entry = PrivateRoom.from_duration(user_id, room.name, total_seconds)
         self._room_manager.add_history_entry(history_entry)
 
         # If room is empty, it is cancelled
@@ -63,3 +63,4 @@ class ServerRoomManager:
     # Verify if user already in a shared room
     def is_user_in_server_room(self, user_id: int) -> bool:
         return user_id in self._student_location
+    
