@@ -1,61 +1,120 @@
 from models.private_room import PrivateRoom
 
 class PrivateRoomManager:
+    """Manages the lifecycle of Private Study Rooms and tracks user study history."""
     def __init__(self):
+        """Initializes the manager with empty active rooms and history records."""
         self._open_rooms: dict[int, PrivateRoom] = {}
         self._closed_rooms: dict[int, list[PrivateRoom]] = {}
-        self._server_room_manager = None
 
-    def set_server_room_manager(self, server_room_manager) -> None:
-        self._server_room_manager = server_room_manager
+    def open(self, user_id: int, name: str) -> None:
+        """Creates and starts a new Private Study Room for a user.
 
-    # Create a new room for the user
-    # Return False if user is already in a room
-    def open(self, user_id: int, name: str) -> bool:
+        Args:
+            user_id (int): The Discord user ID.
+            name (str): The name/topic of the room.
+
+        Raises:
+            ValueError: If the user already has an active Private Study Room.
+        """
         if user_id in self._open_rooms:
-            return False
-
-        if self._server_room_manager and self._server_room_manager.is_user_in_server_room(user_id):
-            return False
+            raise ValueError('You already have an active Private Study Room.')
 
         room = PrivateRoom(user_id, name)
         room.open()
         self._open_rooms[user_id] = room
-        return True
     
-    # End an active room of a user
-    # Return None if user not in a room
-    def close(self, user_id: int) -> PrivateRoom | None:
+    def close(self, user_id: int) -> PrivateRoom:
+        """Ends an active Private Study Room and moves it to the user's history.
+
+        Args:
+            user_id (int): The Discord user ID.
+
+        Raises:
+            ValueError: If the user does not have an active room to close.
+
+        Returns:
+            PrivateRoom: The closed room object containing final timing data.
+        """
         room = self._open_rooms.pop(user_id, None)
         
         if room is None:
-            return None
+            raise ValueError("You don't have a Private Study Room open right now.")
         
         room.close()
         self._add_to_history(room)
         return room
     
     def _add_to_history(self, room: PrivateRoom) -> None:
+        """Internal method to append a closed room to the history dictionary.
+
+        Args:
+            room (PrivateRoom): The closed room to record.
+        """
         if room.user_id not in self._closed_rooms:
             self._closed_rooms[room.user_id] = []
         self._closed_rooms[room.user_id].append(room)
 
     def add_history_entry(self, room: PrivateRoom) -> None:
+        """Public method to manually add a room to the history (used by Server Study Rooms).
+
+        Args:
+            room (PrivateRoom): The closed room to record.
+        """
         self._add_to_history(room)
 
-    # Return an active room for the user, if any
-    def get_open_room(self, user_id: int) -> PrivateRoom | None:
-        return self._open_rooms.get(user_id)
-    
+    def get_open_room(self, user_id: int) -> PrivateRoom:
+        """Retrieves the user's currently active room.
+
+        Args:
+            user_id (int): The Discord user ID.
+
+        Raises:
+            ValueError: If no active room is found for the user.
+
+        Returns:
+            PrivateRoom: The active room object.
+        """
+        room = self._open_rooms.get(user_id)
+        if not room:
+            raise ValueError("You don't have a Private Study Room open right now.")
+        return room
+
     def has_open_room(self, user_id: int) -> bool:
+        """Checks if a user has an ongoing private session.
+        
+        Args:
+            user_id (int): The Discord user ID.
+        """
         return user_id in self._open_rooms
     
-    # Returns the user's finished rooms history
     def get_closed_rooms(self, user_id: int) -> list[PrivateRoom]:
-        return self._closed_rooms.get(user_id, [])
-    
-    # Returns the user's time spent in a room
+        """Returns all finished sessions for a specific user.
+
+        Args:
+            user_id (int): The Discord user ID.
+
+        Raises:
+            ValueError: If the user has no recorded history.
+
+        Returns:
+            list[PrivateRoom]: A list containing all closed rooms of the user.
+        """
+        history = self._closed_rooms.get(user_id, [])
+        if not history:
+            raise ValueError('You have no study history yet.')
+        return history
+
     def get_total_time_by_room(self, user_id: int, name: str) -> int:
+        """Calculates the sum of all seconds studied across all historical sessions.
+
+        Args:
+            user_id (int): The Discord user ID.
+            name (str): The name/topic of the room
+
+        Returns:
+            int: Duration in seconds of the sum of rooms with the same name.
+        """
         room = self._closed_rooms.get(user_id, [])
         
         return sum(

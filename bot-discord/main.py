@@ -21,8 +21,6 @@ taskManager = TaskManager()
 privateRoomManager = PrivateRoomManager()
 serverRoomManager = ServerRoomManager(privateRoomManager)
 
-privateRoomManager.set_server_room_manager(serverRoomManager)
-
 intents = discord.Intents.all()
 bot = commands.Bot('!', intents=intents)
 

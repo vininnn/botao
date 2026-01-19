@@ -1,9 +1,14 @@
 import aiohttp
 
 ZEN_QUOTES_URL = "https://zenquotes.io/api/random"
-
-# Get a inspirational quote to send (API zenquotes)        
+   
 async def get_inspirational_quote() -> str:
+    """Fetches a random inspirational quote from the ZenQuotes API.
+
+    Returns:
+        str: A formatted string containing the quote and the author.
+             Returns a fallback message if no quote is found.
+    """
     async with aiohttp.ClientSession() as session:
         async with session.get(ZEN_QUOTES_URL) as resp:
             data = await resp.json()
