@@ -19,9 +19,9 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
 
     # Status (/room private status)
     @private_group.command(name='status', description='Show the time of your current private room')
-    async def p_status(interaction: discord.Interaction):
+    async def private_room_status(interaction: discord.Interaction):
         await interaction.response.defer()
-        room = privateRoomManager.get_active_room(interaction.user.id) # Certifique-se que o método no manager é get_open_room ou get_active_room
+        room = privateRoomManager.get_open_room(interaction.user.id)
 
         if not room:
             await interaction.followup.send('You dont have a private room open right now.', ephemeral=True)
@@ -31,27 +31,29 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         await interaction.followup.send(f'**Private Room:** "{room.name}"\n**Study time:** "{duration}"')
 
     # Start (/room private start) - Renomeado de private_start para start
-    @private_group.command(name='start', description='Start counting your time')
+    @private_group.command(name='open', description='Open counting your time')
     @app_commands.describe(name='room name')
-    async def private_room_start(interaction: discord.Interaction, name: str):
+    async def private_room_open(interaction: discord.Interaction, name: str):
+        await interaction.response.defer()
         if privateRoomManager.open(interaction.user.id, name):
-            await interaction.response.send_message(f'Private room **{name}** started! Good studies!')
+            await interaction.followup.send(f'Private room **{name}** started! Good studies!')
         else:
-            await interaction.response.send_message('You are already in a study room! Quit it before starting a new one!', ephemeral=True)
+            await interaction.followup.send('You are already in a study room! Quit it before starting a new one!', ephemeral=True)
 
     # Stop (/room private stop)
-    @private_group.command(name='stop', description='Stop and save your time')
+    @private_group.command(name='close', description='Close your room and save your time')
     async def private_room_stop(interaction: discord.Interaction):
+        await interaction.response.defer()
         room = privateRoomManager.close(interaction.user.id)
         if room:
             duration = time_formatter(room.duration_seconds)
-            await interaction.response.send_message(f'Room **{room.name}** finished!\nTime studied: **{duration}**')
+            await interaction.followup.send(f'Room **{room.name}** finished!\nTime studied: **{duration}**')
         else:
-            await interaction.response.send_message('You are not in a study room yet!', ephemeral=True)
+            await interaction.followup.send('You are not in a study room yet!', ephemeral=True)
 
     # Summary (/room private summary)
-    @private_group.command(name='summary', description='Shows the total hours of each subject you studied')
-    async def summary(interaction: discord.Interaction):
+    @room_group.command(name='summary', description='Shows the total hours of each subject you studied')
+    async def room_summary(interaction: discord.Interaction):
         await interaction.response.defer()
         history = privateRoomManager.get_closed_rooms(interaction.user.id)
         
@@ -65,14 +67,14 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
 
         msg = '**Your Study Summary:**\n'
         for name, seconds in stats.items():
-            msg += f'• **{name}**: {time_formatter(seconds)}\n'
+            msg += f'- **{name}**: {time_formatter(seconds)}\n'
         
         await interaction.followup.send(msg)
 
     # Details (/room private details)
     @private_group.command(name='details', description='Shows the total hours studied in a specific room')
     @app_commands.describe(name='room name')
-    async def details(interaction: discord.Interaction, name: str):
+    async def private_room_details(interaction: discord.Interaction, name: str):
         await interaction.response.defer()
         total_seconds = privateRoomManager.get_total_time_by_room(interaction.user.id, name)
         
@@ -81,12 +83,11 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         else:
             await interaction.followup.send(f'Time spent on **{name}**: {time_formatter(total_seconds)}')
 
-
     # --- SERVER GROUP COMMANDS ---
 
     # Status (/room server status)
     @server_group.command(name='status', description='Show your current status in a server room')
-    async def s_status(interaction: discord.Interaction):
+    async def server_room_status(interaction: discord.Interaction):
         await interaction.response.defer()
         
         user_id = interaction.user.id
@@ -121,6 +122,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
 
     # Join (/room server join)
     @server_group.command(name='join', description='Join an existing shared study room')
+    @app_commands.describe(name='room name')
     async def server_room_join(interaction: discord.Interaction, name: str):
         await interaction.response.defer()
         try:
@@ -153,7 +155,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         embed = discord.Embed(title='Active Server Rooms', color=discord.Color.blue())
         for r in rooms:
             student_count = len(r.students)
-            # Nota: Certifique-se de ter implementado get_student_ids no ServerRoom ou use r.students.keys()
+
             student_names = ', '.join([f'<@{uid}>' for uid in r.students.keys()]) 
             
             embed.add_field(

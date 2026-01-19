@@ -5,15 +5,18 @@ import os
 
 # Import commands
 from commands.rooms import register_room_commands
-from commands.tasks import register_tasks
+from commands.tasks import register_task_commands
 from commands.quotes import register_quotes, on_message
 
 # Import managers
+from managers.task_manager import TaskManager
 from managers.private_room_manager import PrivateRoomManager
 from managers.server_room_manager import ServerRoomManager
 
 from dotenv import load_dotenv
 load_dotenv()
+
+taskManager = TaskManager()
 
 privateRoomManager = PrivateRoomManager()
 serverRoomManager = ServerRoomManager(privateRoomManager)
@@ -29,7 +32,7 @@ bot.add_listener(on_message)
 @bot.event
 async def on_ready():
     register_room_commands(bot.tree, privateRoomManager, serverRoomManager)
-    register_tasks(bot.tree)
+    register_task_commands(bot.tree, taskManager)
     register_quotes(bot.tree)
     synced = await bot.tree.sync()
     print(f'Synchro: {len(synced)}')

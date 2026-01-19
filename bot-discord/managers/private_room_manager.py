@@ -15,7 +15,7 @@ class PrivateRoomManager:
         if user_id in self._open_rooms:
             return False
 
-        if self._server_room_manager and self._server_room_manager.is_user_in_shared(user_id):
+        if self._server_room_manager and self._server_room_manager.is_user_in_server_room(user_id):
             return False
 
         room = PrivateRoom(user_id, name)
