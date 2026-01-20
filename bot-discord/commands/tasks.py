@@ -4,13 +4,16 @@ from managers.task_manager import TaskManager
 
 # Function that register the commands
 def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskManager):
+    """Registers the '/task' command group and its subcommands to the bot."""
     
-
+    # Father Group (/task)
     task_group = app_commands.Group(name='task', description='Task manager')
 
+    # New (/task new)
     @task_group.command(name='new', description='Add a new task')
     @app_commands.describe(task='task name')
     async def task_new(interaction: discord.Interaction, task: str):
+        """Creates a new task."""
         await interaction.response.defer()
         try:
             taskManager.add_task(interaction.user.id, task)
@@ -19,24 +22,28 @@ def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskMana
         except ValueError as e:
             await interaction.followup.send(f'{str(e)}', ephemeral=True)
 
+    # Complete (/task complete)
     @task_group.command(name='complete', description='Mark a task to completed')
-    @app_commands.describe(task='task name to complete')
+    @app_commands.describe(task='task name')
     async def task_complete(interaction: discord.Interaction, task: str):
+        """Remove a completed task."""
         await interaction.response.defer()
         try:
             taskManager.remove_task(interaction.user.id, task)
-            await interaction.followup.send(f'"{task}" completed successfully! Good work {interaction.user.mention}!')
+            await interaction.followup.send(f'"**{task}**" completed successfully! Good work {interaction.user.mention}!')
 
         except ValueError as e:
             await interaction.followup.send(f'{str(e)}', ephemeral=True)
 
+    # Current (/task current)
     @task_group.command(name='current', description='Show your current tasks')
     async def task_complete(interaction: discord.Interaction):
+        """List the user\'s current tasks."""
         await interaction.response.defer()
         try:
             tasks = taskManager.get_tasks(interaction.user.id)
             formatted_tasks = '\n'.join(f'- {task}' for task in tasks)
-            await interaction.followup.send(f'Your ongoing tasks:\n{formatted_tasks}')
+            await interaction.followup.send(f'**Your current tasks**:\n{formatted_tasks}')
 
         except ValueError as e:
             await interaction.followup.send(f'{str(e)}', ephemeral=True)

@@ -7,7 +7,7 @@ class TaskManager:
         """Registers a new task for a specific user.
 
         Args:
-            user_id (int): The unique ID of the Discord user.
+            user_id (int): The Discord user ID.
             task (str): The name/description of the task to add.
 
         Raises:
@@ -25,7 +25,7 @@ class TaskManager:
         """Removes a task from a user's list and marks it as complete.
 
         Args:
-            user_id (int): The unique ID of the Discord user.
+            user_id (int): The Discord user ID.
             task (str): The name of the task to be removed.
 
         Raises:
@@ -45,7 +45,7 @@ class TaskManager:
         """Retrieves a copy of the user's current task list.
 
         Args:
-            user_id (int): user_id (int): The unique ID of the Discord user.
+            user_id (int): The Discord user ID.
 
         Raises:
             ValueError: If the user's task list is empty or does not exist.

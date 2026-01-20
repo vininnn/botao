@@ -2,23 +2,23 @@ from models.base.room_base import BaseRoom
 from models.base.traits import OpenableRoom, CloseableRoom
 
 class PrivateRoom(BaseRoom, OpenableRoom, CloseableRoom):
-    """Represents an individual study session for a single user."""
+    """Represents an individual study room for a single user."""
     def __init__(self, user_id: int, name: str):
-        """Initializes a private room session.
+        """Initializes a Private Study Room.
 
         Args:
-            user_id (int): Owner of the session.
-            name (str): Room display name.
+            user_id (int): Owner of the room.
+            name (str): Room name.
         """
         super().__init__(name)
         self.user_id = user_id
     
     def open(self) -> None:
-        """Starts the session. (Inherited from OpenableRoom)"""
+        """Starts the room."""
         pass
 
     def close(self) -> None:
-        """Finalizes the session and marks the end time."""
+        """Finalizes the room and marks the end time."""
         self._mark_as_finished()
 
     @classmethod
@@ -27,7 +27,7 @@ class PrivateRoom(BaseRoom, OpenableRoom, CloseableRoom):
         Factory method to create a PrivateRoom instance from a known duration.
 
         Args:
-            user_id (int): User ID.
+            user_id (int): The Discord user ID.
             name (str): Room name.
             duration_seconds (int): Elapsed time.
 

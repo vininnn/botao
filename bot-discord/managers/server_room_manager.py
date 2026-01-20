@@ -2,7 +2,7 @@ from models.private_room import PrivateRoom
 from models.server_room import ServerRoom
 
 class ServerRoomManager:
-    """Manages shared study rooms across different Discord guilds."""
+    """Manages server rooms across different Discord guilds."""
     def __init__(self, room_manager):
         """Initializes the manager with internal tracking for rooms and student locations.
 
@@ -14,11 +14,11 @@ class ServerRoomManager:
         self._room_manager = room_manager
 
     def open(self, guild_id: int, name: str) -> None:
-        """Creates and opens a new shared room in a guild.
+        """Creates and opens a new Server Study Room in a guild.
 
         Args:
-            guild_id (int): Discord Guild ID.
-            name (str): Unique name for the room in that server.
+            guild_id (int): The Discord server ID.
+            name (str): Room name.
 
         Raises:
             ValueError: If a room with the same name already exists in the guild.
@@ -26,19 +26,19 @@ class ServerRoomManager:
         key = (guild_id, name)
 
         if key in self._server_rooms:
-            raise ValueError(f'A shared room named "{name}" already exists in this server.')
+            raise ValueError(f'A Server Study Room named "{name}" already exists in this server.')
         
         room = ServerRoom(guild_id, name)
         room.open()
         self._server_rooms[key] = room
 
     def join(self, guild_id: int, name: str, user_id: int) -> None:
-        """Adds a user to an existing server room.
+        """Adds a user to an existing Server Study Room.
 
         Args:
-            guild_id (int): Discord Guild ID.
-            name (str): Name of the room to join.
-            user_id (int): Discord User ID.
+            guild_id (int): The Discord server ID.
+            name (str): Room name.
+            user_id (int): The Discord user ID.
 
         Raises:
             ValueError: If user is already in a Server Room.
@@ -47,26 +47,26 @@ class ServerRoomManager:
         key = (guild_id, name)
 
         if user_id in self._student_location:
-            raise ValueError('You are already in a Server Room!')
+            raise ValueError('You already are in a Server Study Room! Leave it first.')
 
         if key not in self._server_rooms:
-            raise ValueError('This Server Room does not exist!')
+            raise ValueError('This Server Study Room does not exist!')
 
         room = self._server_rooms[key]
         room.join(user_id)
         self._student_location[user_id] = key
 
     def leave(self, user_id: int) -> PrivateRoom:
-        """Removes a user from their current server room and saves the session to history.
+        """Removes a user from their current Server Study Room and saves it to history.
 
         Args:
-            user_id (int): Discord User ID.
+            user_id (int): The Discord user ID.
 
         Raises:
             ValueError: If the user is not in a server room.
 
         Returns:
-            PrivateRoom: A history entry representing the finished session.
+            PrivateRoom: A history entry representing the finished room.
         """
         if user_id not in self._student_location:
             raise ValueError('You are not in a Server Room!')
@@ -86,13 +86,13 @@ class ServerRoomManager:
         return history_entry
 
     def list_rooms(self, guild_id: int) -> list[ServerRoom]:
-        """Retrieves all active shared rooms within a specific Discord guild.
+        """Retrieves all active server rooms within a specific Discord guild.
 
         Args:
-            guild_id (int): The unique ID of the server/guild.
+            guild_id (int): The Discord server ID.
 
         Raises:
-            ValueError: If no active shared rooms are found for the given guild.
+            ValueError: If no active server rooms are found for the given guild.
 
         Returns:
             list[ServerRoom]: A list of active ServerRoom objects.
@@ -103,14 +103,14 @@ class ServerRoomManager:
                 room_list.append(room)
         
         if not room_list:
-            raise ValueError('There are no active shared rooms in this server.')
+            raise ValueError('There are no active server rooms in this server.')
         return room_list
     
     def is_user_in_server_room(self, user_id: int) -> bool:
-        """Checks if a user is currently participating in any shared server room.
+        """Checks if a user is currently participating in any Server Study Room.
 
         Args:
-            user_id (int): The Discord user ID to verify.
+            user_id (int): The Discord user ID.
 
         Returns:
             bool: True if the user is in a server room, False otherwise.
@@ -132,6 +132,6 @@ class ServerRoomManager:
         location = self._student_location.get(user_id)
 
         if not location:
-            raise ValueError('You are not in any server room.')
+            raise ValueError('You are not in any Server Study Room.')
         return self._server_rooms.get(location)
     

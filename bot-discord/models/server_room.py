@@ -3,9 +3,9 @@ from models.base.traits import OpenableRoom, JoinableRoom
 from models.room_student import RoomStudent
 
 class ServerRoom(BaseRoom, OpenableRoom, JoinableRoom):
-    """Represents a shared study room within a Discord server where multiple users can join."""
+    """Represents a study room within a Discord server where multiple users can join."""
     def __init__(self, guild_id: int, name: str):
-        """Initializes a shared server room.
+        """Initializes a Server Study Room.
 
         Args:
             guild_id (int): The Discord server ID.
@@ -36,7 +36,7 @@ class ServerRoom(BaseRoom, OpenableRoom, JoinableRoom):
 
     def leave(self, user_id: int) -> int:
         """
-        Removes a student and returns the duration of their session.
+        Removes a student and returns the duration of their room.
 
         Args:
             user_id (int): The Discord user ID.

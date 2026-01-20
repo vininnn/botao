@@ -12,7 +12,7 @@ class PrivateRoomManager:
 
         Args:
             user_id (int): The Discord user ID.
-            name (str): The name/topic of the room.
+            name (str): Room name.
 
         Raises:
             ValueError: If the user already has an active Private Study Room.
@@ -81,7 +81,7 @@ class PrivateRoomManager:
         return room
 
     def has_open_room(self, user_id: int) -> bool:
-        """Checks if a user has an ongoing private session.
+        """Checks if a user has an current private room.
         
         Args:
             user_id (int): The Discord user ID.
@@ -89,7 +89,7 @@ class PrivateRoomManager:
         return user_id in self._open_rooms
     
     def get_closed_rooms(self, user_id: int) -> list[PrivateRoom]:
-        """Returns all finished sessions for a specific user.
+        """Returns all closed rooms for a specific user.
 
         Args:
             user_id (int): The Discord user ID.
@@ -106,11 +106,11 @@ class PrivateRoomManager:
         return history
 
     def get_total_time_by_room(self, user_id: int, name: str) -> int:
-        """Calculates the sum of all seconds studied across all historical sessions.
+        """Calculates the sum of all seconds studied across all historical room.
 
         Args:
             user_id (int): The Discord user ID.
-            name (str): The name/topic of the room
+            name (str): Room name
 
         Returns:
             int: Duration in seconds of the sum of rooms with the same name.

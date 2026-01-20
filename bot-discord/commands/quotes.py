@@ -22,7 +22,7 @@ async def on_message(message: discord.Message):
     if any(word in message.content.lower() for word in SAD_WORDS):
         await message.reply(f"Don't feel down {message.author.mention} — you will get through this.")
 
-def register_quotes(tree: app_commands.CommandTree):
+def register_quote_commands(tree: app_commands.CommandTree):
     """Registers quote-related slash commands to the bot's command tree.
 
     Args:
@@ -31,7 +31,7 @@ def register_quotes(tree: app_commands.CommandTree):
     
     @tree.command(name='inspiration', description='Send a random inspirational quote')
     async def inspiration(interaction: discord.Interaction):
-        """Slash command that fetches and displays an inspirational quote from an external API.
+        """Fetches and displays an inspirational quote from an external API.
 
         Args:
             interaction (discord.Interaction): The interaction object.

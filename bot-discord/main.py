@@ -6,7 +6,7 @@ import os
 # Import commands
 from commands.rooms import register_room_commands
 from commands.tasks import register_task_commands
-from commands.quotes import register_quotes, on_message
+from commands.quotes import register_quote_commands, on_message
 
 # Import managers
 from managers.task_manager import TaskManager
@@ -31,7 +31,7 @@ bot.add_listener(on_message)
 async def on_ready():
     register_room_commands(bot.tree, privateRoomManager, serverRoomManager)
     register_task_commands(bot.tree, taskManager)
-    register_quotes(bot.tree)
+    register_quote_commands(bot.tree)
     synced = await bot.tree.sync()
     print(f'Synchro: {len(synced)}')
     print('All right!')
