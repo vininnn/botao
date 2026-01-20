@@ -39,7 +39,7 @@ class PrivateRoomManager:
         room = self._open_rooms.pop(user_id, None)
         
         if room is None:
-            raise ValueError("You don't have a Private Study Room open right now.")
+            raise ValueError("You are not in a Private Study Room! Try open it.")
         
         room.close()
         self._add_to_history(room)

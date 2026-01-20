@@ -3,15 +3,15 @@ from models.server_room import ServerRoom
 
 class ServerRoomManager:
     """Manages server rooms across different Discord guilds."""
-    def __init__(self, room_manager):
+    def __init__(self, private_manager):
         """Initializes the manager with internal tracking for rooms and student locations.
 
         Args:
-            room_manager: PrivateRoomManager instance for history integration.
+            private_manager: PrivateRoomManager instance for history integration.
         """
         self._server_rooms: dict[tuple[int, str], ServerRoom] = {}
         self._student_location: dict[int, tuple[int, str]] = {}
-        self._room_manager = room_manager
+        self._private_manager = private_manager
 
     def open(self, guild_id: int, name: str) -> None:
         """Creates and opens a new Server Study Room in a guild.
@@ -41,7 +41,7 @@ class ServerRoomManager:
             user_id (int): The Discord user ID.
 
         Raises:
-            ValueError: If user is already in a Server Room.
+            ValueError: If user is already in a Server Study Room.
             ValueError: If the room doesn't exist.
         """
         key = (guild_id, name)
@@ -69,7 +69,7 @@ class ServerRoomManager:
             PrivateRoom: A history entry representing the finished room.
         """
         if user_id not in self._student_location:
-            raise ValueError('You are not in a Server Room!')
+            raise ValueError('You are not in a Server Study Room!')
 
         key = self._student_location.pop(user_id)
         room = self._server_rooms[key]
@@ -77,7 +77,7 @@ class ServerRoomManager:
         total_seconds = room.leave(user_id)
 
         history_entry = PrivateRoom.from_duration(user_id, room.name, total_seconds)
-        self._room_manager.add_history_entry(history_entry)
+        self._private_manager.add_history_entry(history_entry)
 
         # If room is empty, it is cancelled
         if room.is_empty():
@@ -132,6 +132,6 @@ class ServerRoomManager:
         location = self._student_location.get(user_id)
 
         if not location:
-            raise ValueError('You are not in any Server Study Room.')
+            raise ValueError('You are not in a Server Study Room.')
         return self._server_rooms.get(location)
     

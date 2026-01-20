@@ -36,7 +36,7 @@ class BaseRoom(ABC):
             return int((datetime.now(timezone.utc) - self.start_time).total_seconds())
         
     @classmethod
-    def create_history_entry(cls, name: str, duration_seconds: int, **kwargs) -> BaseRoom:  # type: ignore
+    def create_history_entry(cls, name: str, duration_seconds: int, **kwargs):
         """Reconstructs a room object from historical data for record-keeping.
 
         Args:

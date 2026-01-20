@@ -12,6 +12,7 @@ from commands.quotes import register_quote_commands, on_message
 from managers.task_manager import TaskManager
 from managers.private_room_manager import PrivateRoomManager
 from managers.server_room_manager import ServerRoomManager
+from managers.public_room_manager import PublicRoomManager
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -20,6 +21,7 @@ taskManager = TaskManager()
 
 privateRoomManager = PrivateRoomManager()
 serverRoomManager = ServerRoomManager(privateRoomManager)
+publicRoomManager = PublicRoomManager(privateRoomManager, serverRoomManager)
 
 intents = discord.Intents.all()
 bot = commands.Bot('!', intents=intents)
@@ -29,7 +31,7 @@ bot.add_listener(on_message)
 # Bot initialization
 @bot.event
 async def on_ready():
-    register_room_commands(bot.tree, privateRoomManager, serverRoomManager)
+    register_room_commands(bot.tree, privateRoomManager, serverRoomManager, publicRoomManager)
     register_task_commands(bot.tree, taskManager)
     register_quote_commands(bot.tree)
     synced = await bot.tree.sync()
