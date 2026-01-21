@@ -43,6 +43,17 @@ class PublicRoomManager:
         self._student_location[user_id] = name
 
     def leave(self, user_id: int) -> PrivateRoom:
+        """Removes a user from their current Public Study Room and saves it to history.
+
+        Args:
+            user_id (int): The Discord user ID.
+
+        Raises:
+            ValueError: If the user is not in a Public Study Room.
+
+        Returns:
+            PrivateRoom: A history entry representing the finished room.
+        """
         if user_id not in self._student_location:
             raise ValueError('You are not in a Public Study Room.')
 
@@ -57,12 +68,37 @@ class PublicRoomManager:
         return history_entry
 
     def list_rooms(self) -> list[ServerRoom]:
+        """Retrieves all active global rooms within a spec.
+        
+        Returns:
+            list[ServerRoom]: A list of active ServerRoom objects.
+            The list come from server 0 = Global.
+        """
         return list(self._public_rooms.values())
 
     def is_user_in_public_room(self, user_id: int) -> bool:
+        """Checks if a user is currently participating in any Public Study Room.
+
+        Args:
+            user_id (int): The Discord user ID.
+
+        Returns:
+            bool: True if the user is in a Public Study Room, False otherwise.
+        """
         return user_id in self._student_location
     
     def get_user_room(self, user_id: int) -> ServerRoom:
+        """Locates and returns the specific room object where a user is present.
+
+        Args:
+            user_id (int): The Discord user ID.
+
+        Raises:
+            ValueError: If the user is not found in any active Public Study Room.
+
+        Returns:
+            ServerRoom: The room object the user is currently in.
+        """
         location = self._student_location.get(user_id)
 
         if not location:

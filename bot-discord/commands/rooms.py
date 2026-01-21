@@ -5,7 +5,9 @@ from datetime import datetime, timezone
 from managers.private_room_manager import PrivateRoomManager
 from managers.server_room_manager import ServerRoomManager
 from managers.public_room_manager import PublicRoomManager
-from utils.formatter import time_formatter
+
+from utils.formatter import format_time
+from utils.validator import validate_student_availability
 
 def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: PrivateRoomManager, serverRoomManager: ServerRoomManager, publicRoomManager: PublicRoomManager):
     """Registers '/room private' and '/room server' commands to Discord."""
@@ -33,7 +35,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
 
             msg = '**Your Study Summary:**\n'
             for name, seconds in stats.items():
-                msg += f'- **{name}**: **{time_formatter(seconds)}**\n'
+                msg += f'- **{name}**: **{format_time(seconds)}**\n'
             
             await interaction.followup.send(msg)
 
@@ -51,7 +53,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         if total_seconds == 0:
             await interaction.followup.send(f'No history found for room **{name}**.', ephemeral=True)
         else:
-            await interaction.followup.send(f'Time spent on **{name}**: **{time_formatter(total_seconds)}**')
+            await interaction.followup.send(f'Time spent on **{name}**: **{format_time(total_seconds)}**')
 
     # --- PRIVATE GROUP COMMANDS ---
 
@@ -62,9 +64,9 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         """Calculates and displays the current room duration."""
         await interaction.response.defer()
         user_id = interaction.user.id
+
         try:
-            if serverRoomManager.is_user_in_server_room(user_id):
-                raise ValueError('You are currently in a Server Room! Leave it first.')
+            validate_student_availability(interaction, privateRoomManager, serverRoomManager, publicRoomManager)
 
             privateRoomManager.open(user_id, name)
             await interaction.followup.send(f'Private Study Room **{name}** started! Good studies!')
@@ -77,9 +79,11 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     async def private_room_close(interaction: discord.Interaction):
         """Closes the user's active Private Study Room and saves it to history."""
         await interaction.response.defer()
+        user_id = interaction.user.id
+        
         try:
-            room = privateRoomManager.close(interaction.user.id)
-            duration = time_formatter(room.duration_seconds)
+            room = privateRoomManager.close(user_id)
+            duration = format_time(room.duration_seconds)
             await interaction.followup.send(f'Private Study Room **{room.name}** finished!\nTime studied: **{duration}**')
 
         except ValueError as e:
@@ -90,9 +94,11 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     async def private_room_status(interaction: discord.Interaction):
         """Calculates and displays the current Private Study Room duration."""
         await interaction.response.defer()
+        user_id = interaction.user.id
+
         try:
-            room = privateRoomManager.get_open_room(interaction.user.id)
-            duration = time_formatter(room.duration_seconds)
+            room = privateRoomManager.get_open_room(user_id)
+            duration = format_time(room.duration_seconds)
             await interaction.followup.send(f'**Private Study Room:** "{room.name}"\n**Study time:** "{duration}"')
         
         except ValueError as e:    
@@ -106,9 +112,13 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     async def server_room_open(interaction: discord.Interaction, name: str):
         """Opens a Server Study Room after verifying the user is not in a room."""
         await interaction.response.defer()
+        user_id = interaction.user.id
+
         try:
+            validate_student_availability(interaction, privateRoomManager, serverRoomManager, publicRoomManager)
+
             serverRoomManager.open(interaction.guild_id, name)
-            serverRoomManager.join(interaction.guild_id, name, interaction.user.id)
+            serverRoomManager.join(interaction.guild_id, name, user_id)
             await interaction.followup.send(f'Server Study Room **{name}** opened!')
 
         except ValueError as e:
@@ -121,9 +131,9 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         """Joins a Server Study Room after verifying the user has no active room."""
         await interaction.response.defer()
         user_id = interaction.user.id
+
         try:
-            if privateRoomManager.has_open_room(user_id):
-                raise ValueError('You are currently in a Private Study Room! Close it first.')
+            validate_student_availability(interaction, privateRoomManager, serverRoomManager, publicRoomManager)
 
             serverRoomManager.join(interaction.guild_id, name, user_id)
             await interaction.followup.send(f'You joined the Server Study Room **{name}**!')
@@ -136,9 +146,11 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     async def server_room_leave(interaction: discord.Interaction):
         """Leave the user's active Server Study Room and saves the room to history."""
         await interaction.response.defer()
+        user_id = interaction.user.id
+
         try:
-            history = serverRoomManager.leave(interaction.user.id)
-            duration = time_formatter(history.duration_seconds)
+            history = serverRoomManager.leave(user_id)
+            duration = format_time(history.duration_seconds)
             await interaction.followup.send(f'You left **{history.name}**.\nTime studied: **{duration}**')
 
         except ValueError as e:
@@ -149,13 +161,14 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     async def server_room_status(interaction: discord.Interaction):
         """Calculates and displays the current Server Study Room duration."""
         await interaction.response.defer()
+        user_id = interaction.user.id
+        
         try:
-            user_id = interaction.user.id
             room = serverRoomManager.get_user_room(user_id)    
             student = room.students.get(user_id)
             # Recalculate duration manually since RoomStudent is not a BaseRoom
             seconds = int((datetime.now(timezone.utc) - student.join_time).total_seconds())
-            duration = time_formatter(seconds)
+            duration = format_time(seconds)
                 
             await interaction.followup.send(
                 f'**Current Room:** `{room.name}`\n'
@@ -207,12 +220,9 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         """Joins a Public Study Room after verifying the user has no active room."""
         await interaction.response.defer()
         user_id = interaction.user.id
+
         try:
-            if privateRoomManager.has_open_room(user_id):
-                raise ValueError('You are currently in a Private Study Room! Close it first.')
-    
-            if serverRoomManager.is_user_in_server_room(user_id):
-                raise ValueError('You are currently in a Server Study Room! Leave it first.')
+            validate_student_availability(interaction, privateRoomManager, serverRoomManager, publicRoomManager)
     
             publicRoomManager.join(name.value, user_id)
             await interaction.followup.send(f'You joined the Puclic Study Room **{name.value}**!')
@@ -225,9 +235,11 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     async def public_room_leave(interaction: discord.Interaction):
         """Leave the user's active Public Study Room and saves the room to history."""
         await interaction.response.defer()
+        user_id = interaction.user.id
+
         try:
-            history = publicRoomManager.leave(interaction.user.id)
-            duration = time_formatter(history.duration_seconds)
+            history = publicRoomManager.leave(user_id)
+            duration = format_time(history.duration_seconds)
             await interaction.followup.send(f'You left **{history.name}**.\nTime studied: **{duration}**')
 
         except ValueError as e:
@@ -238,13 +250,14 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     async def public_room_status(interaction: discord.Interaction):
         """Calculates and displays the current public room duration."""
         await interaction.response.defer()
+        user_id = interaction.user.id
+
         try:
-            user_id = interaction.user.id
             room = publicRoomManager.get_user_room(user_id)    
             student = room.students.get(user_id)
             # Recalculate duration manually since RoomStudent is not a BaseRoom
             seconds = int((datetime.now(timezone.utc) - student.join_time).total_seconds())
-            duration = time_formatter(seconds)
+            duration = format_time(seconds)
                 
             await interaction.followup.send(
                 f'**Current Room:** `{room.name}`\n'

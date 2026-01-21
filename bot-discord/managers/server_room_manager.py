@@ -14,7 +14,7 @@ class ServerRoomManager:
         self._private_manager = private_manager
 
     def open(self, guild_id: int, name: str) -> None:
-        """Creates and opens a new Server Study Room in a guild.
+        """Opens a new Server Study Room in a guild.
 
         Args:
             guild_id (int): The Discord server ID.
@@ -63,7 +63,7 @@ class ServerRoomManager:
             user_id (int): The Discord user ID.
 
         Raises:
-            ValueError: If the user is not in a server room.
+            ValueError: If the user is not in a Server Study Room.
 
         Returns:
             PrivateRoom: A history entry representing the finished room.
@@ -113,7 +113,7 @@ class ServerRoomManager:
             user_id (int): The Discord user ID.
 
         Returns:
-            bool: True if the user is in a server room, False otherwise.
+            bool: True if the user is in a Server Study Room, False otherwise.
         """
         return user_id in self._student_location
 
@@ -124,10 +124,10 @@ class ServerRoomManager:
             user_id (int): The Discord user ID.
 
         Raises:
-            ValueError: If the user is not found in any active server room.
+            ValueError: If the user is not found in any active Server Study Room.
 
         Returns:
-            ServerRoom: The room object the user is currently in
+            ServerRoom: The room object the user is currently in.
         """
         location = self._student_location.get(user_id)
 

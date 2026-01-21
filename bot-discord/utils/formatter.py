@@ -1,4 +1,4 @@
-def time_formatter(time : int) -> str:
+def format_time(time : int) -> str:
     """Converts a duration in seconds into a formatted HH:MM:SS string.
 
     Args:

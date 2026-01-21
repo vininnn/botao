@@ -80,7 +80,7 @@ class PrivateRoomManager:
             raise ValueError("You don't have a Private Study Room open right now.")
         return room
 
-    def has_open_room(self, user_id: int) -> bool:
+    def is_user_in_private_room(self, user_id: int) -> bool:
         """Checks if a user has an current private room.
         
         Args:
