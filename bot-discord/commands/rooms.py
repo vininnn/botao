@@ -187,7 +187,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         try:
             rooms = serverRoomManager.list_rooms(interaction.guild_id)
             embed = discord.Embed(title='Active Server Study Rooms',
-                                   color=discord.Color.purple())
+                                   color=discord.Color.blurple())
             for room in rooms:
                 student_count = len(room.students)
 

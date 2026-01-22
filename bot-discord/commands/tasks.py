@@ -1,6 +1,8 @@
 import discord
 from discord import app_commands
+
 from managers.task_manager import TaskManager
+from embeds.task_embed import task_new_embed, task_complete_embed, task_current_embed
 
 # Function that register the commands
 def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskManager):
@@ -14,39 +16,49 @@ def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskMana
     @app_commands.describe(task='task name')
     async def task_new(interaction: discord.Interaction, task: str):
         """Creates a new task."""
-        await interaction.response.defer()
+        user_id = interaction.user.id
+
         try:
-            taskManager.add_task(interaction.user.id, task)
-            await interaction.followup.send(f'Task add successfully! Task: "{task}"')
+            taskManager.add_task(user_id, task)
+            embed = task_new_embed(task, interaction.user)
+
+            await interaction.response.send_message(embed=embed)
             
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # Complete (/task complete)
     @task_group.command(name='complete', description='Mark a task to completed')
     @app_commands.describe(task='task name')
-    async def task_complete(interaction: discord.Interaction, task: str):
+    async def task_current(interaction: discord.Interaction, task: str):
         """Remove a completed task."""
-        await interaction.response.defer()
+        user_id = interaction.user.id
+
         try:
-            taskManager.remove_task(interaction.user.id, task)
-            await interaction.followup.send(f'"**{task}**" completed successfully! Good work {interaction.user.mention}!')
+            taskManager.remove_task(user_id, task)
+            embed = task_complete_embed(task, interaction.user)
+
+            await interaction.response.send_message(embed=embed)
 
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # Current (/task current)
     @task_group.command(name='current', description='Show your current tasks')
-    async def task_complete(interaction: discord.Interaction):
+    async def task_current(interaction: discord.Interaction):
         """List the user\'s current tasks."""
-        await interaction.response.defer()
+        user_id = interaction.user.id
+
         try:
-            tasks = taskManager.get_tasks(interaction.user.id)
-            formatted_tasks = '\n'.join(f'- {task}' for task in tasks)
-            await interaction.followup.send(f'**Your current tasks**:\n{formatted_tasks}')
+            tasks = taskManager.get_tasks(user_id)
+            embed = task_current_embed(tasks, interaction.user)
+
+            await interaction.response.send_message(embed=embed)
+            #formatted_tasks = '\n'.join(f'- {task}' for task in tasks)
+            #await interaction.followup.send(f'**Your current tasks**:\n{formatted_tasks}')
 
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     tree.add_command(task_group)
         
