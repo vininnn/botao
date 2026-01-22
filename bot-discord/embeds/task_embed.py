@@ -1,36 +1,32 @@
 import discord
-from embeds.utils_embed import display_author
+from embeds.factory import EmbedFactory
+from utils.constants import PanelsText
+
+TEXT = PanelsText.TASKS
 
 def task_new_embed(task: str, user: discord.User) -> discord.Embed:
-    embed = discord.Embed(
+    return EmbedFactory.base_embed(
+        user=user,
+        author_text=TEXT,
         title='New task added',
-        description=f'**{task}** was addes into your task list.',
-        color=discord.Color.blurple(),
+        description=f'**{task}** was addes into your task list.'
     )
-    
-    display_author(embed, user)
-    
-    return embed
 
 def task_complete_embed(task: str, user: discord.User) -> discord.Embed:
-    embed = discord.Embed(
+    return EmbedFactory.base_embed(
+        user=user,
+        author_text=TEXT,
         title='Task completed',
-        description=f'**{task}** was completed.',
-        color=discord.Color.blurple(),
+        description=f'**{task}** was completed.'
     )
-    
-    display_author(embed, user)
-    
-    return embed
 
 def task_current_embed(tasks: list[str], user: discord.User) -> discord.Embed:
-    embed = discord.Embed(
+    embed = EmbedFactory.base_embed(
+        user=user,
+        author_text=TEXT,
         title='Your current tasks',
-        color=discord.Color.blurple(),
     )
     
-    display_author(embed, user)
-
     i = 1
     for task in tasks:
         embed.add_field(

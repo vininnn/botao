@@ -1,7 +1,10 @@
 import discord
 from discord import app_commands
 import json
+
 from services.quotes_services import get_inspirational_quote
+from embeds.quote_embed import inspirational_embed
+from embeds.quote_view import QuoteView
 
 with open("bot-discord/data/sad_words.json", encoding="utf-8") as file:
     SAD_WORDS = json.load(file)["sad_words"]
@@ -31,12 +34,12 @@ def register_quote_commands(tree: app_commands.CommandTree):
     
     @tree.command(name='inspiration', description='Send a random inspirational quote')
     async def inspiration(interaction: discord.Interaction):
-        """Fetches and displays an inspirational quote from an external API.
-
-        Args:
-            interaction (discord.Interaction): The interaction object.
-        """
+        """Fetches and displays an inspirational quote from an external API."""
         await interaction.response.defer()
+        user = interaction.client.user
+        
+        quote, author = await get_inspirational_quote()
+        embed = inspirational_embed(quote, author, user)
+        view = QuoteView(interaction.user)
 
-        quote = await get_inspirational_quote()
-        await interaction.followup.send(quote)
+        await interaction.followup.send(embed=embed, view=view)

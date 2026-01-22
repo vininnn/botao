@@ -43,8 +43,8 @@ def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskMana
         except ValueError as e:
             await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
-    # Current (/task current)
-    @task_group.command(name='current', description='Show your current tasks')
+    # List (/task list)
+    @task_group.command(name='list', description='Show your current tasks')
     async def task_current(interaction: discord.Interaction):
         """List the user\'s current tasks."""
         user_id = interaction.user.id
@@ -54,8 +54,6 @@ def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskMana
             embed = task_current_embed(tasks, interaction.user)
 
             await interaction.response.send_message(embed=embed)
-            #formatted_tasks = '\n'.join(f'- {task}' for task in tasks)
-            #await interaction.followup.send(f'**Your current tasks**:\n{formatted_tasks}')
 
         except ValueError as e:
             await interaction.response.send_message(f'{str(e)}', ephemeral=True)
