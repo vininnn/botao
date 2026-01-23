@@ -2,20 +2,20 @@ import discord
 from embeds.factory import EmbedFactory
 from utils.constants import PanelsText
 
-TEXT = PanelsText.TASKS
+TASKS = PanelsText.TASKS
 
 def task_new_embed(task: str, user: discord.User) -> discord.Embed:
     return EmbedFactory.base_embed(
         user=user,
-        author_text=TEXT,
+        author_text=TASKS,
         title='New task added',
-        description=f'**{task}** was addes into your task list.'
+        description=f'**{task}** was added into your task list.'
     )
 
 def task_complete_embed(task: str, user: discord.User) -> discord.Embed:
     return EmbedFactory.base_embed(
         user=user,
-        author_text=TEXT,
+        author_text=TASKS,
         title='Task completed',
         description=f'**{task}** was completed.'
     )
@@ -23,7 +23,7 @@ def task_complete_embed(task: str, user: discord.User) -> discord.Embed:
 def task_current_embed(tasks: list[str], user: discord.User) -> discord.Embed:
     embed = EmbedFactory.base_embed(
         user=user,
-        author_text=TEXT,
+        author_text=TASKS,
         title='Your current tasks',
     )
     

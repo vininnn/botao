@@ -8,6 +8,7 @@ from managers.public_room_manager import PublicRoomManager
 
 from utils.formatter import format_time
 from utils.validator import validate_student_availability
+from embeds.room_embed import *
 
 def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: PrivateRoomManager, serverRoomManager: ServerRoomManager, publicRoomManager: PublicRoomManager):
     """Registers '/room private' and '/room server' commands to Discord."""
@@ -69,7 +70,9 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
             validate_student_availability(interaction, privateRoomManager, serverRoomManager, publicRoomManager)
 
             privateRoomManager.open(user_id, name)
-            await interaction.followup.send(f'Private Study Room **{name}** started! Good studies!')
+            embed = private_open_embed(name, interaction.user)
+
+            await interaction.followup.send(embed=embed)
 
         except ValueError as e:
             await interaction.followup.send(f'{str(e)}', ephemeral=True)
@@ -84,7 +87,9 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         try:
             room = privateRoomManager.close(user_id)
             duration = format_time(room.duration_seconds)
-            await interaction.followup.send(f'Private Study Room **{room.name}** finished!\nTime studied: **{duration}**')
+            embed = private_close_embed(room.name, interaction.user, duration)
+            
+            await interaction.followup.send(embed=embed)
 
         except ValueError as e:
             await interaction.followup.send(f'{str(e)}', ephemeral=True)

@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 
 from managers.task_manager import TaskManager
-from embeds.task_embed import task_new_embed, task_complete_embed, task_current_embed
+from embeds.task_embed import *
 
 # Function that register the commands
 def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskManager):
