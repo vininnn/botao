@@ -13,12 +13,14 @@ class ServerRoomManager:
         self._student_location: dict[int, tuple[int, str]] = {}
         self._private_manager = private_manager
 
-    def open(self, guild_id: int, name: str) -> None:
+    def open(self, guild_id: int, guild_name: str, name: str, channel_id: int) -> None:
         """Opens a new Server Study Room in a guild.
 
         Args:
             guild_id (int): The Discord server ID.
+            guild_name (str): The Discord server name.
             name (str): Room name.
+            channel_id (int): The Discord channel ID.
 
         Raises:
             ValueError: If a room with the same name already exists in the guild.
@@ -28,7 +30,7 @@ class ServerRoomManager:
         if key in self._server_rooms:
             raise ValueError(f'A Server Study Room named "{name}" already exists in this server.')
         
-        room = ServerRoom(guild_id, name)
+        room = ServerRoom(guild_id, guild_name, name, channel_id)
         room.open()
         self._server_rooms[key] = room
 
@@ -76,7 +78,7 @@ class ServerRoomManager:
 
         total_seconds = room.leave(user_id)
 
-        history_entry = PrivateRoom.from_duration(user_id, room.name, total_seconds)
+        history_entry = PrivateRoom.from_duration(user_id, room.guild_name, room.name, total_seconds)
         self._private_manager.add_history_entry(history_entry)
 
         # If room is empty, it is cancelled
@@ -134,4 +136,24 @@ class ServerRoomManager:
         if not location:
             raise ValueError('You are not in a Server Study Room.')
         return self._server_rooms.get(location)
+    
+    def get_room(self, guild_id: int, name: str) -> ServerRoom:
+        """Locates and returns the specific room object by guild ID and room name.
+
+        Args:
+            guild_id (int): The Discord server ID.
+            name (str): Room name.
+
+        Raises:
+            ValueError: If the room doesn't exist.
+
+        Returns:
+            ServerRoom: The room object with the search name.
+        """
+        key = (guild_id, name)
+        room = self._server_rooms.get(key)
+
+        if not room:
+            raise ValueError('This Server Study Room does not exist!')
+        return room
     

@@ -5,7 +5,7 @@ from utils.constants import Colors
 class EmbedFactory:
     """Represents an factory of a standardized base embeds."""
     @staticmethod
-    def base_embed(user: discord.User, author_text: str = None, title: str = None, description: str = None, color: discord.Color = Colors.DEFAULT):
+    def base_embed(user: discord.User | str, author_text: str = None, title: str = None, description: str = None, color: discord.Color = Colors.DEFAULT):
         """Standardized base for Embeds, configuring author, cores and structure.
 
         Args:

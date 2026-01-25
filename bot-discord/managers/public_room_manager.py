@@ -17,11 +17,11 @@ class PublicRoomManager:
 
         # Static rooms
         self._public_rooms: dict[str, ServerRoom] = {
-            'Computing': ServerRoom(None, 'Computing'),
-            'Creative Arts': ServerRoom(None, 'Creative Arts'),
-            'Exact Sciences': ServerRoom(None, 'Exact Sciences'),
-            'Humanities': ServerRoom(None, 'Humanities'),
-            'Writing': ServerRoom(None, 'Writing'),
+            'Computing': ServerRoom(None, None, 'Computing', None),
+            'Creative Arts': ServerRoom(None, None, 'Creative Arts', None,),
+            'Exact Sciences': ServerRoom(None, None, 'Exact Sciences', None,),
+            'Humanities': ServerRoom(None, None, 'Humanities', None,),
+            'Writing': ServerRoom(None, None, 'Writing', None,),
         }
     
     def join(self, name: str, user_id: int) -> None:

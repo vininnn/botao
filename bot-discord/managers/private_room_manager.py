@@ -7,11 +7,12 @@ class PrivateRoomManager:
         self._open_rooms: dict[int, PrivateRoom] = {}
         self._closed_rooms: dict[int, list[PrivateRoom]] = {}
 
-    def open(self, user_id: int, name: str) -> None:
+    def open(self, user_id: int, guild_name: str, name: str) -> None:
         """Creates and starts a new Private Study Room for a user.
 
         Args:
             user_id (int): The Discord user ID.
+            guild_name (str): The Discord server name.
             name (str): Room name.
 
         Raises:
@@ -20,7 +21,7 @@ class PrivateRoomManager:
         if user_id in self._open_rooms:
             raise ValueError('You already have an active Private Study Room.')
 
-        room = PrivateRoom(user_id, name)
+        room = PrivateRoom(user_id, guild_name, name)
         room.open()
         self._open_rooms[user_id] = room
     

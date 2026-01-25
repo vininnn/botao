@@ -27,7 +27,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @room_group.command(name='summary', description='Shows the total hours of each room you studied')
     async def room_summary(interaction: discord.Interaction):
         """Aggregates all study rooms and displays a summary per subject."""
-        await interaction.response.defer()
+
         try:
             history = privateRoomManager.get_closed_rooms(interaction.user.id)
             stats = {}
@@ -38,23 +38,22 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
             for name, seconds in stats.items():
                 msg += f'- **{name}**: **{format_time(seconds)}**\n'
             
-            await interaction.followup.send(msg)
+            await interaction.response.send_message(msg)
 
         except ValueError as e:   
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # Details (/room details)
     @room_group.command(name='details', description='Shows the total hours studied in a specific room')
     @app_commands.describe(name='Room name')
     async def private_room_details(interaction: discord.Interaction, name: str):
         """Retrieves historical study data for a specific room name."""
-        await interaction.response.defer()
         total_seconds = privateRoomManager.get_total_time_by_room(interaction.user.id, name)
         
         if total_seconds == 0:
-            await interaction.followup.send(f'No history found for room **{name}**.', ephemeral=True)
+            await interaction.response.send_message(f'No history found for room **{name}**.', ephemeral=True)
         else:
-            await interaction.followup.send(f'Time spent on **{name}**: **{format_time(total_seconds)}**')
+            await interaction.response.send_message(f'Time spent on **{name}**: **{format_time(total_seconds)}**')
 
     # --- PRIVATE GROUP COMMANDS ---
 
@@ -63,25 +62,24 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @app_commands.describe(name='Room name')
     async def private_room_open(interaction: discord.Interaction, name: str):
         """Calculates and displays the current room duration."""
-        await interaction.response.defer()
         user_id = interaction.user.id
+        guild_name = interaction.guild.name
 
         try:
             validate_student_availability(interaction, privateRoomManager, serverRoomManager, publicRoomManager)
 
-            privateRoomManager.open(user_id, name)
+            privateRoomManager.open(user_id, guild_name, name)
             embed = private_open_embed(name, interaction.user)
 
-            await interaction.followup.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # Close (/room private close)
     @private_group.command(name='close', description='Close your current Private Study Room and save your time')
     async def private_room_close(interaction: discord.Interaction):
         """Closes the user's active Private Study Room and saves it to history."""
-        await interaction.response.defer()
         user_id = interaction.user.id
         
         try:
@@ -89,25 +87,24 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
             duration = format_time(room.duration_seconds)
             embed = private_close_embed(room.name, interaction.user, duration)
             
-            await interaction.followup.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # Status (/room private status)
     @private_group.command(name='status', description='Show the time of your current Private Study Room')
     async def private_room_status(interaction: discord.Interaction):
         """Calculates and displays the current Private Study Room duration."""
-        await interaction.response.defer()
         user_id = interaction.user.id
 
         try:
             room = privateRoomManager.get_open_room(user_id)
             duration = format_time(room.duration_seconds)
-            await interaction.followup.send(f'**Private Study Room:** "{room.name}"\n**Study time:** "{duration}"')
+            await interaction.response.send_message(f'**Private Study Room:** "{room.name}"\n**Study time:** "{duration}"')
         
         except ValueError as e:    
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # --- SERVER GROUP COMMANDS ---
 
@@ -116,56 +113,77 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @app_commands.describe(name='Room name')
     async def server_room_open(interaction: discord.Interaction, name: str):
         """Opens a Server Study Room after verifying the user is not in a room."""
-        await interaction.response.defer()
         user_id = interaction.user.id
+        guild_id = interaction.guild.id
+        guild_name = interaction.guild.name
+        channel_id = interaction.channel.id
 
         try:
             validate_student_availability(interaction, privateRoomManager, serverRoomManager, publicRoomManager)
 
-            serverRoomManager.open(interaction.guild_id, name)
-            serverRoomManager.join(interaction.guild_id, name, user_id)
-            await interaction.followup.send(f'Server Study Room **{name}** opened!')
+            serverRoomManager.open(guild_id, guild_name, name, channel_id)
+            serverRoomManager.join(guild_id, name, user_id)
 
+            embed = server_open_embed(name, interaction.user)
+
+            await interaction.response.send_message(embed=embed)
+            
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # Join (/room server join)
     @server_group.command(name='join', description='Join an existing Server Study Room')
     @app_commands.describe(name='Room name')
     async def server_room_join(interaction: discord.Interaction, name: str):
         """Joins a Server Study Room after verifying the user has no active room."""
-        await interaction.response.defer()
         user_id = interaction.user.id
+        guild_id = interaction.guild_id
 
         try:
             validate_student_availability(interaction, privateRoomManager, serverRoomManager, publicRoomManager)
 
-            serverRoomManager.join(interaction.guild_id, name, user_id)
-            await interaction.followup.send(f'You joined the Server Study Room **{name}**!')
+            serverRoomManager.join(guild_id, name, user_id)
+
+            room = serverRoomManager.get_room(guild_id, name)
+            students_ids = list(room.students.keys())
+
+            embed = server_join_embed(name, interaction.user, students_ids)
+            await interaction.response.send_message(embed=embed)
 
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # Leave (/room server leave)
     @server_group.command(name='leave', description='Leave your current Server Study Room')
     async def server_room_leave(interaction: discord.Interaction):
         """Leave the user's active Server Study Room and saves the room to history."""
-        await interaction.response.defer()
         user_id = interaction.user.id
 
         try:
+            room = serverRoomManager.get_user_room(user_id)
+            room_name = room.name
+
+            is_closing = len(room.students) == 1
+            students_ids = [uid for uid in room.students.keys() if uid != user_id]
+
             history = serverRoomManager.leave(user_id)
             duration = format_time(history.duration_seconds)
-            await interaction.followup.send(f'You left **{history.name}**.\nTime studied: **{duration}**')
+
+            embed = server_leave_embed(room_name, interaction.user, duration, students_ids)
+
+            if is_closing:
+                embed_close = server_close_embed(room_name, interaction.client.user)
+                await interaction.response.send_message(embeds=[embed, embed_close])
+            else:
+                await interaction.response.send_message(embed=embed)
 
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # Status (/room server status)
     @server_group.command(name='status', description='Show your current status in a Server Study Room')
     async def server_room_status(interaction: discord.Interaction):
         """Calculates and displays the current Server Study Room duration."""
-        await interaction.response.defer()
         user_id = interaction.user.id
         
         try:
@@ -175,20 +193,20 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
             seconds = int((datetime.now(timezone.utc) - student.join_time).total_seconds())
             duration = format_time(seconds)
                 
-            await interaction.followup.send(
+            await interaction.response.send_message(
                 f'**Current Room:** `{room.name}`\n'
                 f'**Your Time:** `{duration}`\n'
                 f'**Total Students:** `{len(room.students)}`'
             )
 
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # List (/room server list)
     @server_group.command(name='list', description='List all active server rooms in this server')
     async def server_room_list(interaction: discord.Interaction):
         """Generates the list of rooms and active students."""
-        await interaction.response.defer()
+
         try:
             rooms = serverRoomManager.list_rooms(interaction.guild_id)
             embed = discord.Embed(title='Active Server Study Rooms',
@@ -200,14 +218,14 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
                 
                 embed.add_field(
                     name=f'{room.name}', 
-                    value=f'**{student_count}** students\n {student_names if student_count > 0 else 'Empty'}', 
+                    value=f'**{student_count}** students\n {student_names if student_count > 0 else ''}', 
                     inline=False
                 )
             
-            await interaction.followup.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # --- PUBLIC GROUP COMMANDS ---
 
@@ -223,38 +241,35 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     ])
     async def public_room_join(interaction: discord.Interaction, name: app_commands.Choice[str]):
         """Joins a Public Study Room after verifying the user has no active room."""
-        await interaction.response.defer()
         user_id = interaction.user.id
 
         try:
             validate_student_availability(interaction, privateRoomManager, serverRoomManager, publicRoomManager)
     
             publicRoomManager.join(name.value, user_id)
-            await interaction.followup.send(f'You joined the Puclic Study Room **{name.value}**!')
+            await interaction.response.send_message(f'You joined the Puclic Study Room **{name.value}**!')
 
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # Leave (/room public leave)
     @public_group.command(name='leave', description='Leave your current Public Study Room')
     async def public_room_leave(interaction: discord.Interaction):
         """Leave the user's active Public Study Room and saves the room to history."""
-        await interaction.response.defer()
         user_id = interaction.user.id
 
         try:
             history = publicRoomManager.leave(user_id)
             duration = format_time(history.duration_seconds)
-            await interaction.followup.send(f'You left **{history.name}**.\nTime studied: **{duration}**')
+            await interaction.response.send_message(f'You left **{history.name}**.\nTime studied: **{duration}**')
 
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # Status (/room public status)
     @public_group.command(name='status', description='Show your current status in a Public Study Room')
     async def public_room_status(interaction: discord.Interaction):
         """Calculates and displays the current public room duration."""
-        await interaction.response.defer()
         user_id = interaction.user.id
 
         try:
@@ -264,20 +279,19 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
             seconds = int((datetime.now(timezone.utc) - student.join_time).total_seconds())
             duration = format_time(seconds)
                 
-            await interaction.followup.send(
+            await interaction.response.send_message(
                 f'**Current Room:** `{room.name}`\n'
                 f'**Your Time:** `{duration}`\n'
                 f'**Total Students:** `{len(room.students)}`'
             )
 
         except ValueError as e:
-            await interaction.followup.send(f'{str(e)}', ephemeral=True)
+            await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # List (/room public list)
     @public_group.command(name='list', description='List all active public rooms')
     async def public_room_list(interaction: discord.Interaction):
         """Generates the list of rooms and active students."""
-        await interaction.response.defer()
 
         rooms = publicRoomManager.list_rooms()
         embed = discord.Embed(title='Public Rooms',
@@ -313,7 +327,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
                 inline=False
             )
         
-        await interaction.followup.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
     tree.add_command(room_group)

@@ -4,15 +4,19 @@ from models.room_student import RoomStudent
 
 class ServerRoom(BaseRoom, OpenableRoom, JoinableRoom):
     """Represents a study room within a Discord server where multiple users can join."""
-    def __init__(self, guild_id: int, name: str):
+    def __init__(self, guild_id: int, guild_name: str, name: str, channel_id: int):
         """Initializes a Server Study Room.
 
         Args:
             guild_id (int): The Discord server ID.
+            guild_name (str): The Discord server name.
             name (str): Room name.
+            channel_id (int): The Discord channel ID.
         """
         super().__init__(name)
         self.guild_id = guild_id
+        self.guild_name = guild_name
+        self.channel_id = channel_id
         # user_id -> Obj RoomStudent
         self.students: dict[int, RoomStudent] = {}
 
