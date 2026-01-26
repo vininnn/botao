@@ -5,11 +5,11 @@ from utils.constants import Colors
 class EmbedFactory:
     """Represents an factory of a standardized base embeds."""
     @staticmethod
-    def base_embed(user: discord.User | str, author_text: str = None, title: str = None, description: str = None, color: discord.Color = Colors.DEFAULT):
+    def base_embed(user: discord.User | discord.ClientUser, author_text: str = None, title: str = None, description: str = None, color: discord.Color = Colors.DEFAULT):
         """Standardized base for Embeds, configuring author, cores and structure.
 
         Args:
-            user (discord.User): The Discord User object.
+            user (discord.User | discord.ClientUser): The Discord User object.
             author_text (str, optional): Custom text for the author field. If none, it gets the user display_name. Defaults to None.
             title (str, optional): Embed main title. Defaults to None.
             description (str, optional): Embed description text. Defaults to None.

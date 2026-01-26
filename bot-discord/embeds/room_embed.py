@@ -106,7 +106,7 @@ def server_leave_embed(room: str, user: discord.User, duration: str, students_li
 
     return embed
 
-def server_close_embed(room: str, user: discord.User) -> discord.Embed:
+def server_close_embed(room: str, user: discord.ClientUser) -> discord.Embed:
     embed = EmbedFactory.base_embed(
         user=user,
         author_text=ROOMS,

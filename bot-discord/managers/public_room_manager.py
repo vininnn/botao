@@ -62,7 +62,7 @@ class PublicRoomManager:
 
         total_seconds = room.leave(user_id)
         
-        history_entry = PrivateRoom.from_duration(user_id, room.name, total_seconds)
+        history_entry = PrivateRoom.from_duration(user_id, None, room.name, total_seconds)
         self._private_manager.add_history_entry(history_entry)
 
         return history_entry

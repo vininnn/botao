@@ -4,7 +4,7 @@ from utils.constants import PanelsText
 
 TEXT = PanelsText.QUOTES
 
-def inspirational_embed(quote: str, author_name: str, user: discord.User) -> discord.Embed:
+def inspirational_embed(quote: str, author_name: str, user: discord.ClientUser) -> discord.Embed:
     return EmbedFactory.base_embed(
         user=user,
         author_text=TEXT,

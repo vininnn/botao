@@ -53,20 +53,20 @@ async def on_voice_state_update(member, before, after):
     """
     if before.channel is not None and after.channel is None:
         user_id = member.id
+        bot_user = bot.user
 
         try:
             # Closing Private Study Room
             if privateRoomManager.is_user_in_private_room(user_id):
-                room = serverRoomManager.get_user_room(user_id)
+                room = privateRoomManager.close(user_id)
                 guild_name = room.guild_name
                 room_name = room.name
-                
-                history = privateRoomManager.close(user_id)
-                duration = format_time(history.duration_seconds)
 
-                embed = private_disc_embed(room_name, guild_name, duration)
+                duration = format_time(room.duration_seconds)
 
-                await send_dm_safe(member, embed=embed)
+                embed = private_disconnect_embed(room_name, guild_name, duration, bot_user)
+
+                await send_dm_safe(member, msg=embed)
 
             # Closing Server Study Room    
             if serverRoomManager.is_user_in_server_room(user_id):
@@ -80,24 +80,24 @@ async def on_voice_state_update(member, before, after):
                 history = serverRoomManager.leave(user_id)
                 duration = format_time(history.duration_seconds)
 
-                embed = server_disc_embed(room_name, guild_name, duration)
+                embed = server_disconnect_embed(room_name, guild_name, duration, bot_user)
 
-                await send_dm_safe(member, embed=embed)
+                await send_dm_safe(member, msg=embed)
 
                 if is_closing:
                     existing_channel = bot.get_channel(channel_id)
                     if existing_channel:
-                        embed = server_close_embed(room_name, member)
+                        embed = server_close_embed(room_name, bot_user)
                         await existing_channel.send(embed=embed)
             
-            # Closing Server Study Room
+            # Closing Public Study Room
             if publicRoomManager.is_user_in_public_room(user_id):
-                history = publicRoomManager.leave(user_id)
-                duration = format_time(history.duration_seconds)
+                room = publicRoomManager.leave(user_id)
+                duration = format_time(room.duration_seconds)
 
-                embed = public_disc_embed(history.name, duration)
+                embed = public_disconnect_embed(room.name, duration, bot_user)
 
-                await send_dm_safe(member, f'**[AUTO-LEAVE]** | You (`{member.name}`) left the Public Study Room `{history.name}` due to a disconnection with the voice channel.')
+                await send_dm_safe(member, msg=embed)
 
         except Exception:
             pass
