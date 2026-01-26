@@ -11,6 +11,7 @@ class PanelsText:
 
 class Emojis:
     ADD_USER = '<:add_user:1464272848909762713>'
+    BOOKMARK = '<:bookmark:1465382237972463947>'
     CLOSE_DOOR = '<:close_door:1464982729241395312>'
     DISCORD = '<:discord:1465085004106301765>'
     FILTER = '<:filter:1464272719561494599>'
@@ -21,6 +22,7 @@ class Emojis:
     OPEN_BOOK = '<:open_book:1464272900612817042>'
     OPEN_DOOR = '<:door_open:1464286216114405660>'
     QUOTATION_MARKS = '<:quote_marks:1463955921536553203>'
+    SEARCH = '<:search:1465391369244901376>'
     TEXT = '<:text:1464272691853918400>'
     TIME = '<:time:1464272788930957415>'
     USER = '<:user:1464272876206162043>'

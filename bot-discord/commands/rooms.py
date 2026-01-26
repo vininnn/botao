@@ -27,18 +27,17 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @room_group.command(name='summary', description='Shows the total hours of each room you studied')
     async def room_summary(interaction: discord.Interaction):
         """Aggregates all study rooms and displays a summary per subject."""
+        user_id = interaction.user.id
 
         try:
-            history = privateRoomManager.get_closed_rooms(interaction.user.id)
-            stats = {}
+            history = privateRoomManager.get_closed_rooms(user_id)
+            rooms = {}
             for room in history:
-                stats[room.name] = stats.get(room.name, 0) + room.duration_seconds
+                rooms[room.name] = rooms.get(room.name, 0) + room.duration_seconds
 
-            msg = '**Your Study Summary:**\n'
-            for name, seconds in stats.items():
-                msg += f'- **{name}**: **{format_time(seconds)}**\n'
+            embed = room_summary_embed(rooms, interaction.user)
             
-            await interaction.response.send_message(msg)
+            await interaction.response.send_message(embed=embed)
 
         except ValueError as e:   
             await interaction.response.send_message(f'{str(e)}', ephemeral=True)
@@ -53,7 +52,8 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         if total_seconds == 0:
             await interaction.response.send_message(f'No history found for room **{name}**.', ephemeral=True)
         else:
-            await interaction.response.send_message(f'Time spent on **{name}**: **{format_time(total_seconds)}**')
+            embed = room_details_embed(name, interaction.user, format_time(total_seconds))
+            await interaction.response.send_message(embed=embed)
 
     # --- PRIVATE GROUP COMMANDS ---
 
@@ -101,7 +101,10 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         try:
             room = privateRoomManager.get_open_room(user_id)
             duration = format_time(room.duration_seconds)
-            await interaction.response.send_message(f'**Private Study Room:** "{room.name}"\n**Study time:** "{duration}"')
+
+            embed = private_status_embed(room.name, interaction.user, duration)
+
+            await interaction.response.send_message(embed=embed)
         
         except ValueError as e:    
             await interaction.response.send_message(f'{str(e)}', ephemeral=True)

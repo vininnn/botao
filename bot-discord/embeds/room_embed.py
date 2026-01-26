@@ -3,17 +3,54 @@ from embeds.factory import EmbedFactory
 from utils.constants import PanelsText, Emojis
 import time
 
+from utils.formatter import format_time
+
 ROOMS = PanelsText.ROOMS
 
+BOOKMARK = Emojis.BOOKMARK
 CLOSE_DOOR = Emojis.CLOSE_DOOR
 FILTER = Emojis.FILTER
 JOIN = Emojis.JOIN
 LEAVE = Emojis.LEAVE
 NO_USER = Emojis.NO_USER
 OPEN_DOOR = Emojis.OPEN_DOOR
+SEARCH = Emojis.SEARCH
 TIME = Emojis.TIME
+TEXT = Emojis.TEXT
 USER = Emojis.USER
 USERS = Emojis.USERS
+
+    # --- COMMON ROOM EMBEDS ---
+
+def room_summary_embed(rooms: dict[str, int], user: discord.User) -> discord.Embed:
+    embed = EmbedFactory.base_embed(
+        user=user,
+        author_text=ROOMS,
+        title=f'{BOOKMARK} Your study summary',
+    )
+    
+    for room, duration in rooms.items():
+        string_time = format_time(duration)
+
+        embed.add_field(
+            name=f'{room}',
+            value=f'`{string_time}`',
+            inline=True
+        )
+
+    return embed
+
+def room_details_embed(room: str, user: discord.User, duration: str) -> discord.Embed:
+    embed = EmbedFactory.base_embed(
+        user=user,
+        author_text=ROOMS,
+        title=f'{SEARCH} Details of - {room}',
+    )
+
+    embed.add_field(name=f'Room', value=f'`{room}`', inline=True)
+    embed.add_field(name=f'Total time', value=f'`{duration}`', inline=True)
+
+    return embed
 
     # --- PRIVATE ROOM EMBEDS ---
 
@@ -39,6 +76,20 @@ def private_close_embed(room: str, user: discord.User, duration: str) -> discord
         author_text=ROOMS,
         title=f'{CLOSE_DOOR} Room closed - **{room}**',
         description=f'Private room **{room}** closed.'
+    )
+
+    embed.add_field(name=f'{USER} Student', value=f'<@{user.id}>', inline=True)
+    embed.add_field(name=f'{FILTER} Type', value=f'`Private`', inline=True)
+    embed.add_field(name=f'{TIME} Total time', value=f'`{duration}`', inline=True)
+
+    return embed
+
+def private_status_embed(room: str, user: discord.User, duration: str) -> discord.Embed:
+    embed = EmbedFactory.base_embed(
+        user=user,
+        author_text=ROOMS,
+        title=f'{CLOSE_DOOR} Status of - {room}',
+        description=f'Current status of Private Study Room **{room}**!'
     )
 
     embed.add_field(name=f'{USER} Student', value=f'<@{user.id}>', inline=True)
