@@ -27,7 +27,8 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @room_group.command(name='summary', description='Shows the total hours of each room you studied')
     async def room_summary(interaction: discord.Interaction):
         """Aggregates all study rooms and displays a summary per subject."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
 
         try:
             history = privateRoomManager.get_closed_rooms(user_id)
@@ -35,7 +36,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
             for room in history:
                 rooms[room.name] = rooms.get(room.name, 0) + room.duration_seconds
 
-            embed = room_summary_embed(rooms, interaction.user)
+            embed = room_summary_embed(rooms, user)
             
             await interaction.response.send_message(embed=embed)
 
@@ -47,12 +48,13 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @app_commands.describe(name='Room name')
     async def private_room_details(interaction: discord.Interaction, name: str):
         """Retrieves historical study data for a specific room name."""
+        user = interaction.user
         total_seconds = privateRoomManager.get_total_time_by_room(interaction.user.id, name)
         
         if total_seconds == 0:
             await interaction.response.send_message(f'No history found for room **{name}**.', ephemeral=True)
         else:
-            embed = room_details_embed(name, interaction.user, format_time(total_seconds))
+            embed = room_details_embed(name, user, format_time(total_seconds))
             await interaction.response.send_message(embed=embed)
 
     # --- PRIVATE GROUP COMMANDS ---
@@ -62,14 +64,15 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @app_commands.describe(name='Room name')
     async def private_room_open(interaction: discord.Interaction, name: str):
         """Calculates and displays the current room duration."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
         guild_name = interaction.guild.name
 
         try:
             validate_student_availability(interaction, privateRoomManager, serverRoomManager, publicRoomManager)
 
             privateRoomManager.open(user_id, guild_name, name)
-            embed = private_open_embed(name, interaction.user)
+            embed = private_open_embed(name, user)
 
             await interaction.response.send_message(embed=embed)
 
@@ -80,12 +83,13 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @private_group.command(name='close', description='Close your current Private Study Room and save your time')
     async def private_room_close(interaction: discord.Interaction):
         """Closes the user's active Private Study Room and saves it to history."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
         
         try:
             room = privateRoomManager.close(user_id)
             duration = format_time(room.duration_seconds)
-            embed = private_close_embed(room.name, interaction.user, duration)
+            embed = private_close_embed(room.name, user, duration)
             
             await interaction.response.send_message(embed=embed)
 
@@ -96,13 +100,14 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @private_group.command(name='status', description='Show the time of your current Private Study Room')
     async def private_room_status(interaction: discord.Interaction):
         """Calculates and displays the current Private Study Room duration."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
 
         try:
             room = privateRoomManager.get_open_room(user_id)
             duration = format_time(room.duration_seconds)
 
-            embed = private_status_embed(room.name, interaction.user, duration)
+            embed = private_status_embed(room.name, user, duration)
 
             await interaction.response.send_message(embed=embed)
         
@@ -116,7 +121,8 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @app_commands.describe(name='Room name')
     async def server_room_open(interaction: discord.Interaction, name: str):
         """Opens a Server Study Room after verifying the user is not in a room."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
         guild_id = interaction.guild.id
         guild_name = interaction.guild.name
         channel_id = interaction.channel.id
@@ -127,7 +133,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
             serverRoomManager.open(guild_id, guild_name, name, channel_id)
             serverRoomManager.join(guild_id, name, user_id)
 
-            embed = server_open_embed(name, interaction.user)
+            embed = server_open_embed(name, user)
 
             await interaction.response.send_message(embed=embed)
             
@@ -139,7 +145,8 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @app_commands.describe(name='Room name')
     async def server_room_join(interaction: discord.Interaction, name: str):
         """Joins a Server Study Room after verifying the user has no active room."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
         guild_id = interaction.guild_id
 
         try:
@@ -150,7 +157,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
             room = serverRoomManager.get_room(guild_id, name)
             students_ids = list(room.students.keys())
 
-            embed = server_join_embed(name, interaction.user, students_ids)
+            embed = server_join_embed(name, user, students_ids)
             await interaction.response.send_message(embed=embed)
 
         except ValueError as e:
@@ -160,7 +167,10 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @server_group.command(name='leave', description='Leave your current Server Study Room')
     async def server_room_leave(interaction: discord.Interaction):
         """Leave the user's active Server Study Room and saves the room to history."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
+
+        bot = interaction.client.user
 
         try:
             room = serverRoomManager.get_user_room(user_id)
@@ -172,10 +182,10 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
             history = serverRoomManager.leave(user_id)
             duration = format_time(history.duration_seconds)
 
-            embed = server_leave_embed(room_name, interaction.user, duration, students_ids)
+            embed = server_leave_embed(room_name, user, duration, students_ids)
 
             if is_closing:
-                embed_close = server_close_embed(room_name, interaction.client.user)
+                embed_close = server_close_embed(room_name, bot)
                 await interaction.response.send_message(embeds=[embed, embed_close])
             else:
                 await interaction.response.send_message(embed=embed)
@@ -187,7 +197,8 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @server_group.command(name='status', description='Show your current status in a Server Study Room')
     async def server_room_status(interaction: discord.Interaction):
         """Calculates and displays the current Server Study Room duration."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
         
         try:
             room = serverRoomManager.get_user_room(user_id)    
@@ -196,11 +207,9 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
             seconds = int((datetime.now(timezone.utc) - student.join_time).total_seconds())
             duration = format_time(seconds)
                 
-            await interaction.response.send_message(
-                f'**Current Room:** `{room.name}`\n'
-                f'**Your Time:** `{duration}`\n'
-                f'**Total Students:** `{len(room.students)}`'
-            )
+            embed = server_status_embed(room.name, user, duration, room.students)
+
+            await interaction.response.send_message(embed=embed)
 
         except ValueError as e:
             await interaction.response.send_message(f'{str(e)}', ephemeral=True)
@@ -209,21 +218,12 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @server_group.command(name='list', description='List all active server rooms in this server')
     async def server_room_list(interaction: discord.Interaction):
         """Generates the list of rooms and active students."""
+        server = interaction.guild
+        user = interaction.user
 
         try:
-            rooms = serverRoomManager.list_rooms(interaction.guild_id)
-            embed = discord.Embed(title='Active Server Study Rooms',
-                                   color=discord.Color.blurple())
-            for room in rooms:
-                student_count = len(room.students)
-
-                student_names = ', '.join([f'<@{uid}>' for uid in room.students.keys()]) 
-                
-                embed.add_field(
-                    name=f'{room.name}', 
-                    value=f'**{student_count}** students\n {student_names if student_count > 0 else ''}', 
-                    inline=False
-                )
+            rooms = serverRoomManager.list_rooms(server.id)
+            embed = server_list_embed(rooms, user, server.name)
             
             await interaction.response.send_message(embed=embed)
 

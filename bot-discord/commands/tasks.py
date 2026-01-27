@@ -16,11 +16,12 @@ def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskMana
     @app_commands.describe(task='task name')
     async def task_new(interaction: discord.Interaction, task: str):
         """Creates a new task."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
 
         try:
             taskManager.add_task(user_id, task)
-            embed = task_new_embed(task, interaction.user)
+            embed = task_new_embed(task, user)
 
             await interaction.response.send_message(embed=embed)
             
@@ -32,11 +33,12 @@ def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskMana
     @app_commands.describe(task='task name')
     async def task_current(interaction: discord.Interaction, task: str):
         """Remove a completed task."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
 
         try:
             taskManager.remove_task(user_id, task)
-            embed = task_complete_embed(task, interaction.user)
+            embed = task_complete_embed(task, user)
 
             await interaction.response.send_message(embed=embed)
 
@@ -47,11 +49,12 @@ def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskMana
     @task_group.command(name='list', description='Show your current tasks')
     async def task_current(interaction: discord.Interaction):
         """List the user\'s current tasks."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
 
         try:
             tasks = taskManager.get_tasks(user_id)
-            embed = task_current_embed(tasks, interaction.user)
+            embed = task_current_embed(tasks, user)
 
             await interaction.response.send_message(embed=embed)
 

@@ -36,10 +36,10 @@ def register_quote_commands(tree: app_commands.CommandTree):
     async def inspiration(interaction: discord.Interaction):
         """Fetches and displays an inspirational quote from an external API."""
         await interaction.response.defer()
-        user = interaction.client.user
+        bot = interaction.client.user
         
         quote, author = await get_inspirational_quote()
-        embed = inspirational_embed(quote, author, user)
-        view = QuoteView(interaction.user)
+        embed = inspirational_embed(quote, author, bot)
+        view = QuoteView(bot)
 
         await interaction.followup.send(embed=embed, view=view)

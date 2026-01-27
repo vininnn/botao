@@ -12,6 +12,7 @@ CLOSE_DOOR = Emojis.CLOSE_DOOR
 FILTER = Emojis.FILTER
 JOIN = Emojis.JOIN
 LEAVE = Emojis.LEAVE
+LIST = Emojis.LIST
 NO_USER = Emojis.NO_USER
 OPEN_DOOR = Emojis.OPEN_DOOR
 SEARCH = Emojis.SEARCH
@@ -167,5 +168,45 @@ def server_close_embed(room: str, user: discord.ClientUser) -> discord.Embed:
 
     embed.add_field(name=f'{NO_USER} Remaining Students', value='`Empty Room`', inline=True)
     embed.add_field(name=f'{FILTER} Type', value=f'`Server`', inline=True)
+
+    return embed
+
+def server_status_embed(room: str, user: discord.User, duration: str, students: dict) -> discord.Embed:
+    embed = EmbedFactory.base_embed(
+        user=user,
+        author_text=ROOMS,
+        title=f'{CLOSE_DOOR} Status of - {room}',
+        description=f'Current status of Server Study Room **{room}**!'
+    )
+
+    students_text = f'<@{user.id}>'
+    total_students = 0
+    if len(students) > 1:
+        total_students = len(students) - 1
+        students_text = f'<@{user.id}> +{total_students}'        
+
+    embed.add_field(name=f'{USER if not total_students else USERS} Students', value=students_text, inline=True)
+    embed.add_field(name=f'{FILTER} Type', value=f'`Server`', inline=True)
+    embed.add_field(name=f'{TIME} Total time', value=f'`{duration}`', inline=True)
+
+    return embed
+
+def server_list_embed(rooms: list, user: discord.User, server_name: str) -> discord.Embed:
+    embed = EmbedFactory.base_embed(
+        user=user,
+        author_text=ROOMS,
+        title=f'{LIST} List of open server rooms',
+        description=f'All actives Server Study Room of `{server_name}`'
+    )
+
+    for room in rooms:
+
+        student_names = ', '.join([f'<@{uid}>' for uid in room.students.keys()]) 
+        
+        embed.add_field(
+            name=f'{room.name}', 
+            value=f'{student_names}', 
+            inline=True
+        )        
 
     return embed
