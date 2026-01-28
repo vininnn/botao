@@ -71,7 +71,7 @@ def private_open_embed(room: str, user: discord.User) -> discord.Embed:
 
     return embed
 
-def private_close_embed(room: str, user: discord.User, duration: str) -> discord.Embed:
+def private_leave_embed(room: str, user: discord.User, duration: str) -> discord.Embed:
     embed = EmbedFactory.base_embed(
         user=user,
         author_text=ROOMS,

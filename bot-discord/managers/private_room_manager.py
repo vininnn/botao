@@ -25,7 +25,7 @@ class PrivateRoomManager:
         room.open()
         self._open_rooms[user_id] = room
     
-    def close(self, user_id: int) -> PrivateRoom:
+    def leave(self, user_id: int) -> PrivateRoom:
         """Ends an active Private Study Room and moves it to the user's history.
 
         Args:
@@ -89,7 +89,7 @@ class PrivateRoomManager:
         """
         return user_id in self._open_rooms
     
-    def get_closed_rooms(self, user_id: int) -> list[PrivateRoom]:
+    def get_left_rooms(self, user_id: int) -> list[PrivateRoom]:
         """Returns all closed rooms for a specific user.
 
         Args:

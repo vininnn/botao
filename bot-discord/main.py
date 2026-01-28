@@ -58,7 +58,7 @@ async def on_voice_state_update(member, before, after):
         try:
             # Closing Private Study Room
             if privateRoomManager.is_user_in_private_room(user_id):
-                room = privateRoomManager.close(user_id)
+                room = privateRoomManager.leave(user_id)
                 guild_name = room.guild_name
                 room_name = room.name
 
