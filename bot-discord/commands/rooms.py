@@ -125,7 +125,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         except ValueError:    
             pass
 
-        # Try status Private Study Room
+        # Try status Server Study Room
         try:
             room = serverRoomManager.get_user_room(user_id)    
             student = room.students.get(user_id)
@@ -139,7 +139,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
         except ValueError:
             pass
 
-        # Try status Private Study Room
+        # Try status Public Study Room
         try:
             room = publicRoomManager.get_user_room(user_id)    
             student = room.students.get(user_id)
@@ -147,11 +147,8 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
             seconds = int((datetime.now(timezone.utc) - student.join_time).total_seconds())
             duration = format_time(seconds)
                 
-            return await interaction.response.send_message(
-                f'**Current Room:** `{room.name}`\n'
-                f'**Your Time:** `{duration}`\n'
-                f'**Total Students:** `{len(room.students)}`'
-            )
+            embed = public_status_embed(room.name, user, duration, room.students)    
+            return await interaction.response.send_message(embed=embed)
 
         except ValueError:
             await interaction.response.send_message(f'You are not in any Study Room', ephemeral=True)    
@@ -233,7 +230,7 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
 
         try:
             rooms = serverRoomManager.list_rooms(server.id)
-            embed = server_list_embed(rooms, user, server.name)
+            embed = server_list_embed(rooms, user)
             await interaction.response.send_message(embed=embed)
 
         except ValueError as e:
@@ -253,13 +250,18 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     ])
     async def public_room_join(interaction: discord.Interaction, name: app_commands.Choice[str]):
         """Joins a Public Study Room after verifying the user has no active room."""
-        user_id = interaction.user.id
+        user = interaction.user
+        user_id = user.id
 
         try:
             validate_student_availability(interaction, privateRoomManager, serverRoomManager, publicRoomManager)
             publicRoomManager.join(name.value, user_id)
 
-            await interaction.response.send_message(f'You joined the Puclic Study Room **{name.value}**!')
+            room = publicRoomManager.get_user_room(user_id)
+            total_students = len(room.students)
+
+            embed = public_join_embed(name.value, user, total_students)
+            await interaction.response.send_message(embed=embed)
 
         except ValueError as e:
             await interaction.response.send_message(f'{str(e)}', ephemeral=True)
@@ -268,41 +270,11 @@ def register_room_commands(tree: app_commands.CommandTree, privateRoomManager: P
     @public_group.command(name='list', description='List all active public rooms')
     async def public_room_list(interaction: discord.Interaction):
         """Generates the list of rooms and active students."""
+        user = interaction.user
+        server = interaction.guild
 
         rooms = publicRoomManager.list_rooms()
-        embed = discord.Embed(title='Public Rooms',
-                               color=discord.Color.purple())
-        for room in rooms:
-            all_students = list(room.students.keys())
-            student_count = len(all_students)
-
-            local_students = []
-            #limit = 10
-
-            for uid in all_students:
-                member = interaction.guild.get_member(uid)
-                if member:
-                    local_students.append(member.mention)
-
-            #if len(local_students) >= limit:
-            #   break
-
-            if local_students:
-                names = ', '.join(local_students)
-                if student_count > len(local_students):
-                    extra = student_count - len(local_students)
-                    value_text = f'{names} +{extra} others globally'
-                else:
-                    value_text = f'{names}'
-            else:
-                value_text = f'**{student_count}** students active'
-            
-            embed.add_field(
-                name=f'{room.name}', 
-                value=value_text, 
-                inline=False
-            )
-        
+        embed = public_list_embed(rooms, user, server)
         await interaction.response.send_message(embed=embed)
 
 

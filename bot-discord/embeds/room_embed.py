@@ -9,15 +9,20 @@ ROOMS = PanelsText.ROOMS
 
 BOOKMARK = Emojis.BOOKMARK
 CLOSE_DOOR = Emojis.CLOSE_DOOR
+DOCUMENT = Emojis.DOCUMENT
+EARTH = Emojis.EARTH
 FILTER = Emojis.FILTER
+FUNCTION = Emojis.FUNCTION
 JOIN = Emojis.JOIN
 LEAVE = Emojis.LEAVE
 LIST = Emojis.LIST
 NO_USER = Emojis.NO_USER
 OPEN_DOOR = Emojis.OPEN_DOOR
+PALETTE = Emojis.PALETTE
 SEARCH = Emojis.SEARCH
-TIME = Emojis.TIME
+TERMINAL = Emojis.TERMINAL
 TEXT = Emojis.TEXT
+TIME = Emojis.TIME
 USER = Emojis.USER
 USERS = Emojis.USERS
 
@@ -65,7 +70,7 @@ def private_open_embed(room: str, user: discord.User) -> discord.Embed:
 
     embed.add_field(name=f'{USER} Student', value=f'<@{user.id}>', inline=True)
     embed.add_field(name=f'{FILTER} Type', value=f'`Private`', inline=True)
-    embed.add_field(name=f'{TIME} Open', value=f'<t:{int(time.time())}:R>', inline=True)
+    embed.add_field(name=f'{TIME} Opened', value=f'<t:{int(time.time())}:R>', inline=True)
 
     embed.set_image(url='https://mir-s3-cdn-cf.behance.net/project_modules/1400/58a87a182606383.6530875274ecf.gif')
 
@@ -90,7 +95,7 @@ def private_status_embed(room: str, user: discord.User, duration: str) -> discor
         user=user,
         author_text=ROOMS,
         title=f'{CLOSE_DOOR} Status of - {room}',
-        description=f'Current status of Private Study Room **{room}**!'
+        description=f'Current status of Private room **{room}**!'
     )
 
     embed.add_field(name=f'{USER} Student', value=f'<@{user.id}>', inline=True)
@@ -111,7 +116,7 @@ def server_open_embed(room: str, user: discord.User) -> discord.Embed:
 
     embed.add_field(name=f'{USER} Students', value=f'<@{user.id}>', inline=True)
     embed.add_field(name=f'{FILTER} Type', value=f'`Server`', inline=True)
-    embed.add_field(name=f'{TIME} Open', value=f'<t:{int(time.time())}:R>', inline=True)
+    embed.add_field(name=f'{TIME} Opened', value=f'<t:{int(time.time())}:R>', inline=True)
 
     embed.set_image(url='https://mir-s3-cdn-cf.behance.net/project_modules/1400/58a87a182606383.6530875274ecf.gif')
 
@@ -122,14 +127,14 @@ def server_join_embed(room: str, user: discord.User, students_list: list) -> dis
         user=user,
         author_text=ROOMS,
         title=f'{JOIN} Room joined - **{room}**',
-        description=f'<@{user.id}> Joined the server room **{room}**!'
+        description=f'<@{user.id}> Joined the Server room **{room}**!'
     )
 
     students = ', '.join([f'<@{uid}>' for uid in students_list])
 
     embed.add_field(name=f'{USERS} Students', value=f'{students}', inline=True)
     embed.add_field(name=f'{FILTER} Type', value=f'`Server`', inline=True)
-    embed.add_field(name=f'{TIME} Open', value=f'<t:{int(time.time())}:R>', inline=True)
+    embed.add_field(name=f'{TIME} Joined', value=f'<t:{int(time.time())}:R>', inline=True)
 
     embed.set_image(url='https://mir-s3-cdn-cf.behance.net/project_modules/1400/58a87a182606383.6530875274ecf.gif')
 
@@ -176,7 +181,7 @@ def server_status_embed(room: str, user: discord.User, duration: str, students: 
         user=user,
         author_text=ROOMS,
         title=f'{CLOSE_DOOR} Status of - {room}',
-        description=f'Current status of Server Study Room **{room}**!'
+        description=f'Current status of Server room **{room}**!'
     )
 
     students_text = f'<@{user.id}>'
@@ -191,12 +196,12 @@ def server_status_embed(room: str, user: discord.User, duration: str, students: 
 
     return embed
 
-def server_list_embed(rooms: list, user: discord.User, server_name: str) -> discord.Embed:
+def server_list_embed(rooms: list, user: discord.User) -> discord.Embed:
     embed = EmbedFactory.base_embed(
         user=user,
         author_text=ROOMS,
-        title=f'{LIST} List of open server rooms',
-        description=f'All actives Server Study Room of `{server_name}`'
+        title=f'{LIST} List of opens Server room',
+        description='\u200b'
     )
 
     for room in rooms:
@@ -208,5 +213,88 @@ def server_list_embed(rooms: list, user: discord.User, server_name: str) -> disc
             value=f'{student_names}', 
             inline=True
         )        
+
+    return embed
+
+    # --- PUBLIC ROOM EMBEDS ---
+
+def public_join_embed(room: str, user: discord.User, total_students: int) -> discord.Embed:
+    embed = EmbedFactory.base_embed(
+        user=user,
+        author_text=ROOMS,
+        title=f'{JOIN} Room joined - **{room}**',
+        description=f'<@{user.id}> Joined the Public room **{room}**!'
+    )
+
+    students_text = f'<@{user.id}>'
+    if total_students > 1:
+        total_students = total_students - 1
+        students_text = f'<@{user.id}> +{total_students}' 
+    
+
+    embed.add_field(name=f'{USERS} Students', value=f'{students_text}', inline=True)
+    embed.add_field(name=f'{FILTER} Type', value=f'`Public`', inline=True)
+    embed.add_field(name=f'{TIME} Joined', value=f'<t:{int(time.time())}:R>', inline=True)
+
+    embed.set_image(url='https://mir-s3-cdn-cf.behance.net/project_modules/1400/58a87a182606383.6530875274ecf.gif')
+
+    return embed
+
+def public_status_embed(room: str, user: discord.User, duration: str, students: dict) -> discord.Embed:
+    embed = EmbedFactory.base_embed(
+        user=user,
+        author_text=ROOMS,
+        title=f'{CLOSE_DOOR} Status of - {room}',
+        description=f'Current status of Public room **{room}**!'
+    )
+
+    students_text = f'<@{user.id}>'
+    total_students = 0
+    if len(students) > 1:
+        total_students = len(students) - 1
+        students_text = f'<@{user.id}> +{total_students}'        
+
+    embed.add_field(name=f'{USER if not total_students else USERS} Students', value=students_text, inline=True)
+    embed.add_field(name=f'{FILTER} Type', value=f'`Public`', inline=True)
+    embed.add_field(name=f'{TIME} Total time', value=f'`{duration}`', inline=True)
+
+    return embed
+
+def public_list_embed(rooms: list, user: discord.User, server: discord.Guild) -> discord.Embed:
+    embed = EmbedFactory.base_embed(
+        user=user,
+        author_text=ROOMS,
+        title=f'{LIST} List of opens Public room',
+        description='\u200b'
+    )
+
+    emojis_list = [TERMINAL, PALETTE, FUNCTION, EARTH, DOCUMENT]
+
+    for room, emoji in zip(rooms, emojis_list):
+        all_students = list(room.students.keys())
+        student_count = len(all_students)
+
+        local_students = []
+        #limit = 10
+
+        for uid in all_students:
+            member = server.get_member(uid)
+            if member:
+                local_students.append(member.mention)
+
+        #if len(local_students) >= limit:
+        #   break
+
+        if local_students:
+            names = ''.join(local_students)
+            if student_count > len(local_students):
+                extra = student_count - len(local_students)
+                value_text = f'{names} +{extra} others globally'
+            else:
+                value_text = f'{names}'
+        else:
+            value_text = f'**{student_count}** students active'
+        
+        embed.add_field(name=f'{emoji} {room.name}', value=value_text, inline=False)
 
     return embed
