@@ -20,7 +20,7 @@ def task_complete_embed(task: str, user: discord.User) -> discord.Embed:
         description=f'**{task}** was completed.'
     )
 
-def task_current_embed(tasks: list[str], user: discord.User) -> discord.Embed:
+def task_list_embed(tasks: list[str], user: discord.User) -> discord.Embed:
     embed = EmbedFactory.base_embed(
         user=user,
         author_text=TASKS,

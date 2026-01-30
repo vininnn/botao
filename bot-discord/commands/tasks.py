@@ -3,6 +3,7 @@ from discord import app_commands
 
 from managers.task_manager import TaskManager
 from embeds.task_embed import *
+from views.task_view import TaskDashboardView
 
 # Function that register the commands
 def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskManager):
@@ -10,6 +11,16 @@ def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskMana
     
     # Father Group (/task)
     task_group = app_commands.Group(name='task', description='Task manager')
+
+    async def send_dashboard(interaction: discord.Interaction, msg: str = None):
+        user = interaction.user
+        user_id = user.id
+        tasks = taskManager.get_tasks(user_id)
+        embed = task_list_embed(tasks, user)
+        view = TaskDashboardView(taskManager, owner_id=user_id)
+
+        await interaction.response.send_message(content=msg, embed=embed, view=view)
+        view.message = await interaction.original_response()
 
     # New (/task new)
     @task_group.command(name='new', description='Add a new task')
@@ -21,42 +32,32 @@ def register_task_commands(tree: app_commands.CommandTree, taskManager: TaskMana
 
         try:
             taskManager.add_task(user_id, task)
-            embed = task_new_embed(task, user)
+            await send_dashboard(interaction)
 
-            await interaction.response.send_message(embed=embed)
-            
         except ValueError as e:
             await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # Complete (/task complete)
     @task_group.command(name='complete', description='Mark a task to completed')
     @app_commands.describe(task='task name')
-    async def task_current(interaction: discord.Interaction, task: str):
+    async def task_complete(interaction: discord.Interaction, task: str):
         """Remove a completed task."""
         user = interaction.user
         user_id = user.id
 
         try:
             taskManager.remove_task(user_id, task)
-            embed = task_complete_embed(task, user)
-
-            await interaction.response.send_message(embed=embed)
+            await send_dashboard(interaction)
 
         except ValueError as e:
             await interaction.response.send_message(f'{str(e)}', ephemeral=True)
 
     # List (/task list)
     @task_group.command(name='list', description='Show your current tasks')
-    async def task_current(interaction: discord.Interaction):
+    async def task_list(interaction: discord.Interaction):
         """List the user\'s current tasks."""
-        user = interaction.user
-        user_id = user.id
-
         try:
-            tasks = taskManager.get_tasks(user_id)
-            embed = task_current_embed(tasks, user)
-
-            await interaction.response.send_message(embed=embed)
+            await send_dashboard(interaction)
 
         except ValueError as e:
             await interaction.response.send_message(f'{str(e)}', ephemeral=True)

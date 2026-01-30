@@ -4,7 +4,7 @@ import json
 
 from services.quotes_services import get_inspirational_quote
 from embeds.quote_embed import inspirational_embed
-from embeds.quote_view import QuoteView
+from views.quote_view import QuoteView
 
 with open("bot-discord/data/sad_words.json", encoding="utf-8") as file:
     SAD_WORDS = json.load(file)["sad_words"]
