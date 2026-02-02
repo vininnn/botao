@@ -23,6 +23,7 @@ class TaskNewModal(ui.Modal, title='New Task'):
         self.view_to_update = view_to_update
 
     async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
         user_id = interaction.user.id
         task = self.name.value
 
@@ -35,10 +36,10 @@ class TaskNewModal(ui.Modal, title='New Task'):
             if self.view_to_update.message:
                 await self.view_to_update.message.edit(embed=embed, view=self.view_to_update)
 
-            await interaction.response.send_message(f'{task} - Task added sucessfully!', ephemeral=True)
+            await interaction.followup.send(f'Task added sucessfully! - {task}""', ephemeral=True)
 
         except ValueError as e:
-            await interaction.response.send_message(str(e), ephemeral=True)
+            await interaction.followup.send(str(e), ephemeral=True)
         
 class TaskCompleteSelect(ui.Select):
     def __init__(self, tasks, taskManager: TaskManager, parent_view):
@@ -57,19 +58,26 @@ class TaskCompleteSelect(ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
         user = interaction.user
         user_id = user.id
 
         task_to_complete = self.values[0]
-        self.taskManager.remove_task(user_id, task_to_complete)
 
-        tasks = self.taskManager.get_tasks(user_id)
-        embed = task_list_embed(tasks, user)
+        try:
+            self.taskManager.remove_task(user_id, task_to_complete)
+
+            tasks = self.taskManager.get_tasks(user_id)
+            embed = task_list_embed(tasks, user)
+            
+            if self.parent_view.message:
+                await self.parent_view.message.edit(embed=embed, view=self.parent_view)
+
+            await interaction.followup.send(f'Task completed! - "{task_to_complete}"', ephemeral=True)
         
-        if self.parent_view.message:
-            await self.parent_view.message.edit(embed=embed, view=self.parent_view)
+        except ValueError as e:
+            await interaction.followup.send(f'{str(e)}', ephemeral=True)    
 
-        await interaction.response.send_message(f'{task_to_complete} - Task completed!', ephemeral=True)
 
 class TaskCompleteView(ui.View):
     def __init__(self, tasks, taskManager, main_view):
@@ -87,7 +95,6 @@ class TaskDashboardView(ui.View):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user.id == self.owner_id
 
-    
     async def on_timeout(self):
         for item in self.children:
             item.disabled = True
@@ -110,11 +117,13 @@ class TaskDashboardView(ui.View):
         if interaction.user.id != self.owner_id:
             await interaction.response.send_message('You cannot edit this list! Create your own list /task list', ephemeral=True)
             return False
+        
+        await interaction.response.defer(ephemeral=True)
 
         tasks = self.taskManager.get_tasks(user_id)
         if not tasks:
-            await interaction.response.send_message('Your list is empty!', ephemeral=True)
+            await interaction.followup.send('Your list is empty!', ephemeral=True)
             return
         
         view = TaskCompleteView(tasks, self.taskManager, self)
-        await interaction.response.send_message('Select the task you want to complete:', view=view, ephemeral=True)
+        await interaction.followup.send('Select the task you want to complete:', view=view, ephemeral=True)

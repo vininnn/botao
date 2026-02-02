@@ -53,8 +53,8 @@ class TaskManager:
         Returns:
             list[str]: A list of task strings.
         """
-        tasks = self._tasks_by_users.get(user_id, [])
-        if not tasks:
-            raise ValueError('You have no tasks!')
-        return tasks.copy()
+        return self._tasks_by_users.get(user_id, [])
+        #if not tasks:
+        #    raise ValueError('You have no tasks!')
+        #return tasks.copy()
     
