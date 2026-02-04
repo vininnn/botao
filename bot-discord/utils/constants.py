@@ -1,15 +1,18 @@
 import discord
 
 class Colors:
+    """Standard hex colors for bot embeds."""
     DEFAULT = discord.Color.blurple()
 
 class PanelsText:
+    """Header titles for different dashboard panels."""
     QUOTES = 'QUOTES PANEL'
     ROOMS = 'ROOMS PANEL'
     TASKS = 'TASKS PANEL'
     DISCONNECT = 'DISCONNECT PANEL'
 
 class Emojis:
+    """Custom discord emoji IDs for UI elements and buttons."""
     ADD_USER = '<:add_user:1464272848909762713>'
     BOOKMARK = '<:bookmark:1465382237972463947>'
     CLOSE_DOOR = '<:close_door:1464982729241395312>'

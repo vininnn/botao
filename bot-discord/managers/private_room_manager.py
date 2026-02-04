@@ -16,8 +16,12 @@ class PrivateRoomManager:
             name (str): Room name.
 
         Raises:
+            ValueError: If the room name exceed 20 characters.
             ValueError: If the user already has an active Private Study Room.
         """
+        if len(name) > 20:
+            raise ValueError('A room name cannot exceed 20 characters.')
+
         if user_id in self._open_rooms:
             raise ValueError('You already have an active Private Study Room.')
 

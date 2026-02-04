@@ -11,10 +11,18 @@ class TaskManager:
             task (str): The name/description of the task to add.
 
         Raises:
+            ValueError: If the taks name exceed 20 characters.
+            ValueError: If the user already have 25 tasks and want add another one.
             ValueError: If the task already exists in the user's list.
         """
+        if len(task) > 20:
+            raise ValueError('A task name cannot exceed 20 characters.')
+
         if user_id not in self._tasks_by_users:
             self._tasks_by_users[user_id] = []
+
+        if len(self._tasks_by_users[user_id]) >= 25:
+            raise ValueError('You have reached the maximum limit of 25 tasks! Complete one before adding another.')
 
         if task in self._tasks_by_users[user_id]:
             raise ValueError(f'You already have a task named "{task}" setted!')

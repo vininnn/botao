@@ -23,8 +23,12 @@ class ServerRoomManager:
             channel_id (int): The Discord channel ID.
 
         Raises:
+            ValueError: If the room name exceed 20 characters.
             ValueError: If a room with the same name already exists in the guild.
         """
+        if len(name) > 20:
+            raise ValueError('A room name cannot exceed 20 characters.')
+    
         key = (guild_id, name)
 
         if key in self._server_rooms:
