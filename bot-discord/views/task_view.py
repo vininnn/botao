@@ -39,7 +39,7 @@ class TaskNewModal(ui.Modal, title='New Task'):
             await interaction.followup.send(f'Task added sucessfully! - {task}""', ephemeral=True)
 
         except ValueError as e:
-            await interaction.followup.send(str(e), ephemeral=True)
+            await interaction.followup.send(f'{str(e)}', ephemeral=True)
         
 class TaskCompleteSelect(ui.Select):
     def __init__(self, tasks, taskManager: TaskManager, parent_view):
